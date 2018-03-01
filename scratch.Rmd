@@ -1,0 +1,48 @@
+---
+title: "Scratch"
+author: "Andreas Beger, Predictive Heuristics"
+date: "3/1/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library("tidyverse")
+library("haven")
+
+allegations <- read_dta("input/itt/data/RevisedSAFINAL_11Mar2013.dta")
+
+
+cy <- read_csv("input/itt/data/CY.csv")
+cyvt <- read_csv("input/itt/data/CYVT.csv")
+cyaocvt <- read_csv("input/itt/data/CYAoCVT.csv")
+
+ggplot(cy, aes(x = LoT)) + 
+  geom_bar() +
+  coord_flip()
+
+cyvt %>%
+  gather(key, value, starts_with("LoT")) %>%
+  ggplot(aes(x = value)) +
+  geom_bar() +
+  coord_flip()
+
+cyvt %>%
+  gather(key, value, starts_with("LoT")) %>%
+  ggplot(aes(x = value, group = key)) +
+  geom_bar() +
+  coord_flip() +
+  facet_wrap(~ key)
+
+cyvt %>%
+  gather(key, value, starts_with("LoT")) %>%
+  filter(value!="No Allegations") %>%
+  ggplot(aes(x = value, group = key)) +
+  geom_bar() +
+  coord_flip() +
+  facet_wrap(~ key)
+```
+
