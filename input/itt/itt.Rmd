@@ -9,6 +9,24 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Levels of Torture 
+
+Ordinal scale with 6 regular values and 6 special values:
+
+1. No Allegations
+2. Infrequent
+3. Several
+4. Routinely
+5. Widespread
+6. Systematic
+
+- Continued
+- Improved
+- Increased/Worsening
+- Allegation, no LoT
+- -777 central government collapse
+- -999 foreign state occupation
+
 ```{r}
 library("tidyverse")
 library("haven")
@@ -44,5 +62,19 @@ cyvt %>%
   geom_bar() +
   coord_flip() +
   facet_wrap(~ key)
+
+cyvt %>%
+  gather(key, value, starts_with("LoT")) %>%
+  ggplot(aes(x = factor(cowccode), y = year, fill = value)) +
+  facet_wrap(~ key) +
+  geom_tile()
+  
+```
+
+## Country-year, agency, victim
+
+```{r}
+tidy_cyaocvt <- cyaocvt %>%
+  gather(starts_with("LoT"))
 ```
 
