@@ -49,16 +49,3 @@ cy <- cy %>%
 
 saveRDS(cy, file = "output/cy.rds")
 write_csv(cy, path = "output/cy.csv")
-
-cy %>%
-  filter(!is.na(LoTUnknown)) %>%
-  gather(victim, lot, starts_with("LoT")) %>%
-  mutate(victim = str_replace(victim, "LoT", ""))
-
-glm(LoTCriminal %in% c("Systematic", "Widespread") ~ 
-      NY.GDP.PCAP.KD + LJI,
-    data = cy) %>%
-  summary()
-
-ggplot(cy) +
-  geom_point(aes(y = LoTCriminal %in% c("Systematic", "Widespread"), x = LJI))
