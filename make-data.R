@@ -3,22 +3,62 @@ library("tidyverse")
 library("states")
 
 source("input/itt/itt.R")
-cy <- itt()
+cy <- itt_get()
 
 source("input/wdi/wdi.R")
-cy <- wdi("input/wdi") %>%
-  rename(year = datestr) %>%
-  left_join(cy, ., by = c("gwcode", "year", "date"))
+cy <- wdi_get("input/wdi") %>%
+  dplyr::rename(year = datestr) %>%
+  dplyr::select(-date) %>%
+  dplyr::left_join(cy, ., by = c("gwcode", "year")) %>%
+  dplyr::select(gwcode, year, date, everything())
 
 source("input/v-dem/vdem.R")
-cy <- vdem() %>%
+cy <- vdem_get() %>%
+  mutate(datestr = as.integer(datestr)) %>%
   left_join(cy, ., by = c("gwcode", "year" = "datestr"))
 
+source("input/des/des.R")
+cy <- des_get("yearly") %>%
+  select(-date) %>%
+  left_join(cy, ., by = c("gwcode", "year"))
 
-saveRDS(cy, file = "input/cy.rds")
-write_csv(cy, file = "input/cy.csv")
+source("input/lji/lji.R")
+cy <- lji_get("yearly") %>%
+  select(-date) %>%
+  left_join(cy, ., by = c("gwcode", "year"))
+
+# which cases drop out from missing ITT data?
+data(gwstates)
+cnames <- gwstates %>% 
+  group_by(gwcode) %>% 
+  summarize(country = tail(country_name, 1)) %>%
+  select(gwcode, country)
+Encoding(cnames$country) <- "latin1"
+cy %>%
+  filter(is.na(LoTUnknown)) %>%
+  group_by(gwcode) %>%
+  summarize(years = paste0(min(year), " to ", max(year))) %>%
+  left_join(., cnames, by = "gwcode") %>%
+  select(gwcode, country, years) %>%
+  write_csv(., path = "output/missing-from-ITT.csv")
+
+cy <- cy %>%
+  mutate(gwcode = as.integer(gwcode),
+         year = as.integer(year)) %>%
+  filter(!is.na(LoTUnknown))
+
+saveRDS(cy, file = "output/cy.rds")
+write_csv(cy, path = "output/cy.csv")
 
 cy %>%
   filter(!is.na(LoTUnknown)) %>%
   gather(victim, lot, starts_with("LoT")) %>%
   mutate(victim = str_replace(victim, "LoT", ""))
+
+glm(LoTCriminal %in% c("Systematic", "Widespread") ~ 
+      NY.GDP.PCAP.KD + LJI,
+    data = cy) %>%
+  summary()
+
+ggplot(cy) +
+  geom_point(aes(y = LoTCriminal %in% c("Systematic", "Widespread"), x = LJI))

@@ -1,6 +1,6 @@
 
 
-wdi <- function(path = "data-modules/wdi") {
+wdi_get <- function(path = "data-modules/wdi") {
   gdp_pop <- read_csv(file.path(path, "output/wdi-gdp-pop.csv"),
                       col_types = cols(
                         gwcode = col_integer(),
@@ -12,7 +12,7 @@ wdi <- function(path = "data-modules/wdi") {
                         SP.POP.TOTL_ln = col_double(),
                         datestr = col_integer()
                       )) %>%
-    mutate(date = as.Date(paste0(datestr, "-01-01")))
+    mutate(date = as.Date(paste0(datestr, "-12-31")))
   gdp_growth <- read_csv(file.path(path, "output/wdi-gdp-growth.csv"),
                          col_types = cols(
                            gwcode = col_integer(),
@@ -46,7 +46,7 @@ wdi <- function(path = "data-modules/wdi") {
                        SP.DYN.IMRT.IN = col_double()
                      )) %>%
     mutate(datestr = as.integer(year), year = NULL, 
-           date = as.Date(paste0(datestr, "-01-01")))
+           date = as.Date(paste0(datestr, "-12-31")))
   wdi <- list(gdp_pop, gdp_growth, inflation, ict, infmort) %>%
     reduce(full_join, by = c("gwcode", "date", "datestr"))
   wdi

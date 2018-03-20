@@ -17,9 +17,6 @@ Potential sources for legal/judicial institutions:
 - UDS
 - CIPRI judicial independence scale
 - Democratic Electoral Systems; 1946-2016; http://mattgolder.com/elections
-    - cases are legislative and presidential elections from 1946-2016
-    - includes 6 category regime type classification from Cheibub, Ghandi, Vreeland
-    - includes 12 value info on electoral system type
 - Sara Mitchell legal stuff see paper Mitchell ring and spellman 2013
 
 ## TODO

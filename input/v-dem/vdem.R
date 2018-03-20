@@ -1,20 +1,24 @@
 
-vdem <- function(path = "input/v-dem") {
-  vdem <- read_csv(file.path(path, "data/vdem.csv"),
-                   col_types = cols(
-                     datestr = col_double(),
-                     gwcode = col_integer(),
-                     v2x_polyarchy = col_double(),
-                     v2x_api = col_double(),
-                     v2x_mpi = col_double(),
-                     v2x_libdem = col_double(),
-                     v2x_liberal = col_double(),
-                     v2x_partipdem = col_double(),
-                     v2x_partip = col_double(),
-                     v2x_delibdem = col_double(),
-                     v2xdl_delib = col_double(),
-                     v2x_egaldem = col_double(),
-                     v2x_egal = col_double()
-                   ))
+library("vdem")
+library("dplyr")
+library("tidyr")
+library("ggplot2")
+library("readr")
+
+vdem_get <- function(path = "input/v-dem") {
+  vdem <- vdem::extract_vdem(section_number = 1)
+  
+  vdem <- vdem %>%
+    select(-vdem_country_id, -vdem_country_text_id, -extended_country_name, 
+           -historical_date, -codingstart, -gapstart, -gapend, -codingend, 
+           -vdem_cown, -cown, -GW_startdate, -GW_enddate, -GWc, -extended_region,
+           -extended_continent, -microstate, -lat, -lon, -in_GW_system) %>%
+    select(-contains("codelow"), -contains("codehigh"))
+  
+  vdem <- vdem %>%
+    dplyr::rename(gwcode = GWn, datestr = year) %>%
+    mutate(vdem_country_name = NULL)
+  
+  #write_csv(vdem, path = "output/vdem.csv")
   vdem
 }
