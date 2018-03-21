@@ -3,7 +3,8 @@ library("tidyverse")
 library("states")
 
 source("input/itt/itt.R")
-cy <- itt_get()
+cy <- itt_get() %>%
+  mutate(RstrctAccess = as.integer(RstrctAccess=="Yes"))
 
 source("input/wdi/wdi.R")
 cy <- wdi_get("input/wdi") %>%

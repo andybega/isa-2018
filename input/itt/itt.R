@@ -2,6 +2,10 @@
 library("tidyverse")
 library("states")
 
+itt_factor <- function(x) {
+  factor(x, levels = c("No Allegations", "Infrequent", "Several", "Routinely", "Widespread", "Systematic", "Continued", "Improved", "Increased/Worsening", "Allegation, No LoT", "-777", "-999"))
+}
+
 itt_get <- function() {
   cyvt <- read_csv("input/itt/data/CYVT.csv",
                    col_types = cols(

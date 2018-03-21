@@ -47,7 +47,16 @@ wdi_get <- function(path = "data-modules/wdi") {
                      )) %>%
     mutate(datestr = as.integer(year), year = NULL, 
            date = as.Date(paste0(datestr, "-12-31")))
-  wdi <- list(gdp_pop, gdp_growth, inflation, ict, infmort) %>%
+  rents <- read_csv(file.path(path, "output/wdi-rents.csv"),
+                    col_types = cols(
+                      gwcode = col_integer(),
+                      year = col_integer(),
+                      date = col_date(format = ""),
+                      NY.GDP.PETR.RT.ZS = col_double(),
+                      NY.GDP.TOTL.RT.ZS = col_double()
+                    )) %>%
+    rename(datestr = year)
+  wdi <- list(gdp_pop, gdp_growth, inflation, ict, infmort, rents) %>%
     reduce(full_join, by = c("gwcode", "date", "datestr"))
   wdi
 }
