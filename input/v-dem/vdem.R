@@ -17,7 +17,10 @@ vdem_get <- function(path = "input/v-dem") {
   
   vdem <- vdem %>%
     dplyr::rename(gwcode = GWn, datestr = year) %>%
-    mutate(vdem_country_name = NULL)
+    mutate(vdem_country_name = NULL) %>%
+    mutate_all(as.numeric) %>%
+    mutate(gwcode = as.integer(gwcode),
+           datestr = as.integer(datestr))
   
   #write_csv(vdem, path = "output/vdem.csv")
   vdem

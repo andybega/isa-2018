@@ -38,20 +38,11 @@ itt %>%
   geom_bar(position = "dodge") +
   coord_flip()
 
-# Construct DV versions for each victim type
-yy_levels <- c("Routine", "Widespread", "Systematic")
-yvars <- list(NULL)
-for (yy in cy %>% select(starts_with("LoT")) %>% names()) {
-  newyname <- yy %>% str_replace(., "LoT", "yy_")
-  yvars <- c(yvars, newyname)
-  cy[, newyname] <- cy[, yy] %in% yy_levels
-}
-yvars <- unlist(yvars)
-
 
 
 cor(cy[, c("yy_Unknown", "yy_Dissident", "yy_Criminal", "RstrctAccess", 
-           "NY.GDP.PCAP.KD_ln", "LJI")], use = "complete.obs")
+           "NY.GDP.PCAP.KD_ln", "NY.GDP.PETR.RT.ZS",
+           "LJI", "v2x_polyarchy")], use = "complete.obs")
 
 mdl1 <-  tibble(yvar = yvars) %>%
   mutate(formula = paste(yvar, "~ LJI")) %>%

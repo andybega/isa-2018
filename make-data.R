@@ -28,6 +28,11 @@ cy <- lji_get("yearly") %>%
   select(-date) %>%
   left_join(cy, ., by = c("gwcode", "year"))
 
+source("input/mrs-legal/legal.R")
+cy <- legal_get("yearly") %>%
+  select(-date) %>%
+  left_join(cy, ., by = c("gwcode", "year"))
+
 # which cases drop out from missing ITT data?
 data(gwstates)
 cnames <- gwstates %>% 
@@ -47,6 +52,18 @@ cy <- cy %>%
   mutate(gwcode = as.integer(gwcode),
          year = as.integer(year)) %>%
   filter(!is.na(LoTUnknown))
+
+# Construct DV versions for each victim type
+yy_levels <- c("Routine", "Widespread", "Systematic")
+yvars <- list(NULL)
+for (yy in cy %>% select(starts_with("LoT")) %>% names()) {
+  newyname <- yy %>% str_replace(., "LoT", "yy_")
+  yvars <- c(yvars, newyname)
+  cy[, newyname] <- cy[, yy] %in% yy_levels
+}
+yvars <- unlist(yvars)
+attr(cy, "yvars") <- yvars
+
 
 saveRDS(cy, file = "output/cy.rds")
 write_csv(cy, path = "output/cy.csv")
