@@ -1,10 +1,16 @@
 
 library("tidyverse")
 library("states")
+library("lubridate")
+library("stringr")
 
 source("input/itt/itt.R")
-cy <- itt_get() %>%
-  mutate(RstrctAccess = as.integer(RstrctAccess=="Yes"))
+itt1 <- itt_get("allegation count")  %>% 
+  # for some reason in the CY data version restricted access is more conservative
+  # than in allegation data, but keep it there 
+  select(-itt_RstrctAccess)
+itt2 <- itt_get("by victim")
+cy <- left_join(itt1, itt2, by = c("gwcode", "year")) 
 
 source("input/wdi/wdi.R")
 cy <- wdi_get("input/wdi") %>%
@@ -18,10 +24,17 @@ cy <- vdem_get() %>%
   mutate(datestr = as.integer(datestr)) %>%
   left_join(cy, ., by = c("gwcode", "year" = "datestr"))
 
-source("input/des/des.R")
-cy <- des_get("yearly") %>%
+# source("input/des/des.R")
+# cy <- des_get("yearly") %>%
+#   select(-date) %>%
+#   left_join(cy, ., by = c("gwcode", "year"))
+
+source("input/dd/dd.R")
+cy <- dd_get("yearly") %>%
   select(-date) %>%
   left_join(cy, ., by = c("gwcode", "year"))
+
+cy$dd_democracy <- str_detect(cy$regime, "democracy") %>% as.integer()
 
 source("input/lji/lji.R")
 cy <- lji_get("yearly") %>%
@@ -41,7 +54,7 @@ cnames <- gwstates %>%
   select(gwcode, country)
 Encoding(cnames$country) <- "latin1"
 cy %>%
-  filter(is.na(LoTUnknown)) %>%
+  filter(is.na(itt_LoTUnknown)) %>%
   group_by(gwcode) %>%
   summarize(years = paste0(min(year), " to ", max(year))) %>%
   left_join(., cnames, by = "gwcode") %>%
@@ -51,13 +64,13 @@ cy %>%
 cy <- cy %>%
   mutate(gwcode = as.integer(gwcode),
          year = as.integer(year)) %>%
-  filter(!is.na(LoTUnknown))
+  filter(!is.na(itt_LoTUnknown))
 
 # Construct DV versions for each victim type
 yy_levels <- c("Routine", "Widespread", "Systematic")
 yvars <- list(NULL)
-for (yy in cy %>% select(starts_with("LoT")) %>% names()) {
-  newyname <- yy %>% str_replace(., "LoT", "yy_")
+for (yy in cy %>% select(starts_with("itt_LoT")) %>% names()) {
+  newyname <- yy %>% str_replace(., "itt_LoT", "yy_")
   yvars <- c(yvars, newyname)
   cy[, newyname] <- cy[, yy] %in% yy_levels
 }

@@ -18,8 +18,6 @@ data(cowstates)
 cnames <- cowstates %>% group_by(cowcode) %>% summarize(country = unique(country_name)[1])
 
 suppressMessages({
-  
-
   allegations <- read_dta("data/RevisedSAFINAL_11Mar2013.dta")
   cy <- read_csv("data/CY.csv") %>%
     mutate_at(vars(starts_with("LoT")), itt_factor)
@@ -147,5 +145,34 @@ cyvt_long %>%
 ```{r}
 tidy_cyaocvt <- cyaocvt %>%
   gather(starts_with("LoT"))
+```
+
+# Allegations 
+
+```{r}
+by_victim <- allegations %>%
+  gather(victim, value, vtcriminal:vtunst) %>%
+  filter(value==1) %>%
+  mutate(value = NULL,
+         victim = str_replace(victim, "vt", ""))
+
+by_alleg <- allegations %>%
+  mutate(n_vict = vtcriminal+vtdissident + vtmarginalized + vtstateagent + vtpow + vtunst) %>%
+  filter(n_vict==1) %>%
+  gather(victim, value, vtcriminal:vtunst) %>%
+  filter(value==1) %>%
+  mutate(value = NULL,
+         victim = str_replace(victim, "vt", ""))
+
+data.frame(
+  victim_type = names(table(by_victim$victim)),
+  by_victim_count = table(by_victim$victim) %>% as.vector(),
+  by_victim_perc  = (table(by_victim$victim) / nrow(by_victim) * 100) %>% as.vector(),
+  by_alleg_count = table(by_alleg$victim) %>% as.vector(),
+  by_alleg_per = (table(by_alleg$victim) / nrow(by_alleg) * 100) %>% as.vector()
+) %>%
+  knitr::kable(digits = 1)
+
+
 ```
 
