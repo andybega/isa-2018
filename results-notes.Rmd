@@ -1,0 +1,53 @@
+---
+title: "Results note"
+author: "Andreas Beger, Predictive Heuristics"
+date: "3/27/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library("tidyverse")
+```
+
+
+Data: country-years from 1995 to 2005, which is the limit of ITT data coverage. There are 152 unique countries (G&W codes). The number of observation is about 1600. 
+
+![](output/selected-allegation-counts.png)
+
+
+![](output/selected-levels-of-torture.png)
+
+
+![](output/allegations-by-victim-scatterplots.png)
+
+The plot is meant to show that while allegation of torture against different victim types within a country are generally positively correlated, there is substantial variation around this broader trend. In other words, not all countries that torture criminal or marginalized groups also torture dissidents. 
+
+# Modeling
+
+![The three dependent variables, allegation counts by victim](output/outcome-time-series.png)
+
+![](output/count-model-coefs.png)
+
+Coefficient estimates from 4 models. All are Poisson count models and include country random effects. The first model has intercepts only, second adds GDP per capita and a binary indicator for democracy, derived from Cheibub, Gandhi, and Vreeland. The third and fourth models add latent judicial independence and legal system dummies, respectively. 
+
+```{r}
+read_csv("output/count-model-fit.csv", 
+         col_types = cols(
+           outcome = col_character(),
+           model_name = col_character(),
+           AIC = col_double(),
+           BIC = col_double(),
+           MAE = col_double(),
+           RMSE = col_double()
+         )) %>%
+  knitr::kable(digits = 2)
+  
+```
+
+![Marginal calibration plots, dont show much difference](output/marginal-calibration-plots.png)
+
+![Predicted vs observed](output/mdl1-y-vs-yhat.png)
+
+![Predicted vs observed](output/mdl3-y-vs-yhat.png)

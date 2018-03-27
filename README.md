@@ -21,14 +21,10 @@ Potential sources for legal/judicial institutions:
 
 ## TODO
 
-- get data, distinguish victim types
-- maybe distinguish agency types too
-- might need to look at specific allegations
+- ingest comparative constitutions
+- fix ITT aggregation (dissident no multi-events)
 
-- fix the issues with DES, incl get Gandhi regime data
-- IVs?: LJI, polyarchy, legal trad stuff, regime type, presidential, election type
-
-Plan
+## Plan
 
 - DH will write front-end
 - DH will get back to me about judicial data sources
