@@ -15,6 +15,9 @@ source("input/itt/itt.R")
 
 cy <- readRDS("output/cy.rds")
 
+data(gwstates)
+cnames <- gwstates %>% group_by(gwcode) %>% summarize(country = unique(country_name)[1])
+
 # Helper functions --------------------------------------------------------
 
 get_preds <- function(x) {
@@ -85,6 +88,52 @@ tidy_cormat <- function(X) {
 
 # Plotting outcomes -------------------------------------------------------
 
+# Allegations by victim type
+p <- cy %>%
+  select(gwcode, year, starts_with("itt_alleg"), -itt_alleg_vtall) %>%
+  gather(Victim, Allegations, starts_with("itt_alleg")) %>%
+  # Clean up victim factor labels
+  mutate(Victim = str_replace(Victim, "itt_alleg_vt", "") %>% str_to_title(),
+         Victim = factor(Victim) %>% fct_recode(Unknown = "Unst", POW = "Pow")) %>%
+  group_by(Victim) %>%
+  summarize(Allegations = sum(Allegations)) %>%
+  # Sort by # allegations so we can re-order factor lables, so the plot is high to low
+  arrange(Allegations) %>%
+  mutate(Victim = fct_inorder(Victim)) %>%
+  ungroup() %>%
+  ggplot(.) +
+  ggstance::geom_barh(aes(y = Victim, x = Allegations), stat = "identity",
+                      width = .8) +
+  geom_text(aes(y = Victim, x = Allegations, 
+                label = formatC(Allegations, format="d", big.mark=",")),
+            nudge_x = c(2*130, 3*130, rep(-100, 4)), hjust = 1, 
+            colour = c(rep("gray10", 2), rep("gray95", 4))) +
+  theme_ipsum() +
+  labs(y = "", x = "# Allegations") +
+  theme(axis.text=element_text(size=11, colour = "gray10", family = "Arial"))
+ggsave(p, file = "output/allegations-by-victim.png", height = 5, width = 8)
+
+# Which countries have the most allegations?
+by_victim_and_country <- cy %>%
+  select(gwcode, year, starts_with("itt_alleg"), -itt_alleg_vtall) %>%
+  gather(Victim, Allegations, starts_with("itt_alleg")) %>%
+  # Clean up victim factor labels
+  mutate(Victim = str_replace(Victim, "itt_alleg_vt", "") %>% str_to_title(),
+         Victim = factor(Victim) %>% fct_recode(Unknown = "Unst", POW = "Pow")) %>%
+  group_by(gwcode, Victim) %>%
+  summarize(Allegations = sum(Allegations)) %>%
+  left_join(., cnames, by = "gwcode") %>%
+  ungroup()
+by_victim_and_country %>%
+  arrange(desc(Allegations))
+
+by_country <- by_victim_and_country %>%
+  group_by(gwcode) %>%
+  summarize(Allegations = sum(Allegations)) 
+by_country %>%
+  arrange(desc(Allegations))
+
+
 itt <- cy %>%
   select(gwcode, year, starts_with("itt_LoT")) %>%
   gather(Victim, LoT, starts_with("itt_LoT")) %>%
@@ -120,28 +169,31 @@ itt %>%
 data(gwstates)
 cnames <- gwstates %>% group_by(gwcode) %>% summarize(country = unique(country_name)[1])
 p <- cy %>%
-  filter(gwcode %in% c(2, 200, 220, 260, 710, 750)) %>%
+  filter(gwcode %in% c(2, 200, 220, 260, 710, 750, 640, 775)) %>%
   select(gwcode, date, itt_alleg_vtcriminal:itt_alleg_vtunst) %>%
-  gather(key, value, -gwcode, -date) %>%
+  gather(Victim, Allegations, -gwcode, -date) %>%
+  # Clean up victim factor labels
+  mutate(Victim = str_replace(Victim, "itt_alleg_vt", "") %>% str_to_title(),
+         Victim = factor(Victim) %>% fct_recode(Unknown = "Unst", POW = "Pow")) %>%
   left_join(., cnames, by = "gwcode") %>%
-  ggplot(., aes(x = date, y = value, colour = key)) +
-  facet_wrap(~ country) +
+  ggplot(., aes(x = date, y = Allegations, colour = Victim)) +
+  facet_wrap(~ country, nrow = 2) +
   geom_line() +
   scale_colour_brewer(type = "qual", palette = 3) +
   theme_ipsum() +
   ggtitle("ITT allegations by victim type for select countries")
-ggsave(p, file = "output/selected-allegation-counts.png", height = 5, width = 8, scale = 1.2)
+ggsave(p, file = "output/selected-allegation-counts.png", height = 5, width = 10, scale = 1.2)
 
 p <- itt %>%
-  filter(gwcode %in% c(2, 200, 220, 260, 710, 750)) %>%
+  filter(gwcode %in% c(2, 200, 220, 260, 710, 750, 640, 775)) %>%
   left_join(., cnames, by = "gwcode") %>%
   ggplot(., aes(x = year, y = Victim, fill = LoT)) +
   geom_tile() +
-  facet_wrap(~ country) +
+  facet_wrap(~ country, nrow = 2) +
   scale_fill_manual(values = col_vals) +
   theme_ipsum() +
   ggtitle("ITT level of torture by victim type for select countries")
-ggsave(p, file = "output/selected-levels-of-torture.png", height = 5, width = 8, scale = 1.2)
+ggsave(p, file = "output/selected-levels-of-torture.png", height = 5, width = 10, scale = 1.2)
 
 
 cors_by_country <- cy %>%
@@ -548,3 +600,38 @@ pd %>%
   ggplot(., aes(x = NY.GDP.MKTP.KD, y = yhat)) +
   facet_wrap(~ outcome) + 
   geom_line()
+
+
+res1 <- read_csv("output/count-model-fit.csv", 
+                 col_types = cols(
+                   outcome = col_character(),
+                   model_name = col_character(),
+                   AIC = col_double(),
+                   BIC = col_double(),
+                   MAE = col_double(),
+                   RMSE = col_double()
+                 )) 
+res2 <- read_csv("output/xgboost-fit.csv",
+                 col_types = cols(
+                   outcome = col_character(),
+                   model_name = col_character(),
+                   MAE = col_double(),
+                   RMSE = col_double()
+                 ))
+res <- bind_rows(res1, res2) 
+p <- res %>%
+  gather(metric, value, AIC:RMSE) %>%
+  mutate(model_name = factor(model_name) %>% fct_rev() %>%
+           fct_recode("Intercepts-only" = "mdl1",
+                      "GDP + pop (M2)" = "mdl2",
+                      "M2 + LJI (M3)" = "mdl3",
+                      "M2 + legal_system (M4)" = "mdl4")) %>%
+  ggplot(.) +
+  geom_point(aes(x = value, y = model_name, colour = outcome)) +
+  geom_path(aes(x = value, y = model_name, group = outcome, colour = outcome),
+            linetype = 3) +
+  facet_wrap(~ metric, scales = "free") +
+  theme_ipsum() +
+  ggtitle("Model fit") +
+  labs(x = "", y = "")
+ggsave(p, file = "output/model-fit-plot.png", height = 5, width = 8)
