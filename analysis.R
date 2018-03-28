@@ -8,6 +8,8 @@ library("broom")
 library("ggstance")
 library("xgboost")
 library("caret")
+library("recipes")
+library("pdp")
 
 source("input/itt/itt.R")
 
@@ -229,6 +231,23 @@ ggplot(cy) +
   geom_line(aes(x = LJI, y = v2x_polyarchy, group = gwcode))
 
 
+# Bivariate analysis ------------------------------------------------------
+
+p <- cy %>%
+  select(gwcode, year, LJI, itt_alleg_vtcriminal:itt_alleg_vtmarginalized, itt_alleg_vtunst) %>%
+  gather(yvar, value, starts_with("itt_alleg")) %>%
+  mutate(yvar = str_replace(yvar, "itt_alleg_vt", "") %>% str_to_title(),
+         yvar = replace(yvar, yvar=="Unst", "Unknown")) %>%
+  ggplot(., aes(x = LJI, y = value)) +
+  facet_wrap(~ yvar) +
+  geom_point(aes(group = gwcode), alpha = .2) +
+  #geom_line(aes(group = gwcode), alpha = .2) +
+  scale_y_continuous("ln(# allegations + 1)", trans = "log1p") +
+  geom_smooth(method = "lm") +
+  theme_ipsum() +
+  labs(y = "Latent judicial independence") 
+ggsave(p, file = "output/scatterplot-itt-allegations-v-lji.png", height = 10, width = 10)
+
 
 # Count models with ITT allegations ---------------------------------------
 
@@ -391,27 +410,141 @@ cy %>%
   geom_histogram()
 
 
+# Started working on a model based on XGBoost variable importance, but it's not working so well
+mdl5 <-  list(
+  criminal     = glmer(
+    itt_alleg_vtcriminal ~ (1|gwcode) + 1 + log(NY.GDP.MKTP.KD) + SP.POP.TOTL_ln + log1p(NY.GDP.TOTL.RT.ZS), 
+    data = cy, family = poisson(link = "log")),
+  dissident    = glmer(
+    itt_alleg_vtdissident ~ (1|gwcode) + 1 + log(NY.GDP.MKTP.KD) + SP.POP.TOTL_ln + log1p(NY.GDP.TOTL.RT.ZS), 
+    data = cy, family = poisson(link = "log")),
+  marginalized = glmer(
+    itt_alleg_vtmarginalized ~ (1|gwcode) + 1 + log(NY.GDP.MKTP.KD) + SP.POP.TOTL_ln + log1p(NY.GDP.TOTL.RT.ZS), 
+    data = cy, family = poisson(link = "log"))
+)
+
+
 
 # Throw xgboost at it -----------------------------------------------------
 
 
 num_data <- cy %>%
-  select(which(sapply(cy, class) %in% c("integer", "numeric"))) %>%
-  select(-year)
+  select(-starts_with("yy_"), -starts_with("itt_LoT"),
+         # doesn't play with step_dummy
+         -hensel_colonial) %>% 
+  mutate(gwcodeUS = as.integer(gwcode==2))
+num_data <- recipe(num_data) %>%
+  add_role(starts_with("itt_alleg"), new_role = "outcome") %>%
+  add_role(gwcode, year, date, new_role = "ID") %>%
+  add_role(-starts_with("itt_alleg"), -gwcode, -year, -date, new_role = "predictor") %>%
+  step_center(all_numeric(), -all_outcomes(), -has_role("ID"), 
+              -itt_RstrctAccess, -dd_democracy, -h_indjudiciary, -gwcodeUS) %>%
+  step_scale(all_numeric(), -all_outcomes(), -has_role("ID"), 
+             -itt_RstrctAccess, -dd_democracy, -h_indjudiciary, -gwcodeUS) %>%
+  step_dummy(regime, ht_colonial, mrs_legalsys) %>%
+  step_zv(all_predictors()) %>%
+  prep(retain = TRUE)
+train_id_vars <- num_data %>%
+  juice(has_role("ID"))
 train_y <- num_data %>%
-  select(starts_with("itt_alleg")) 
+  juice(has_role("outcome"))
 train_x <- num_data %>%
-  select(-starts_with("itt_alleg"))
+  juice(has_role("predictor")) %>%
+  as.matrix()
 
-trControl <- caret::trainControl(method = "cv", number = 2, verboseIter = TRUE,
-                                 savePredictions = "final")
+trControl <- caret::trainControl(method = "cv", number = 11, 
+                                 verboseIter = FALSE, savePredictions = "final")
 
-mdl0 <- train(x = train_x, y = train_y[, "itt_alleg_vtdissident"],
-              method = "xgbTree", objective = "count:poisson", 
-              eval_metric = "poisson-nloglik", trControl = trControl)
+# http://xgboost.readthedocs.io/en/latest/how_to/param_tuning.html
+# http://xgboost.readthedocs.io/en/latest/parameter.html
+hyperparameters <- data.frame(nrounds = 100, 
+                              eta = .3, 
+                              # tree complexity
+                              max_depth = 6, 
+                              min_child_weight = 1, 
+                              gamma = 0, 
+                              # randomization
+                              colsample_bytree = .6, 
+                              subsample = .75)
 
-plot(predict(mdl0), cy$itt_alleg_vtdissident)
+mdlX <- list(
+  criminal = train(x = train_x, y = train_y[["itt_alleg_vtcriminal"]],
+                   method = "xgbTree", objective = "count:poisson", 
+                   eval_metric = "poisson-nloglik", trControl = trControl,
+                   tuneGrid = hyperparameters),
+  dissident = train(x = train_x, y = train_y[["itt_alleg_vtdissident"]],
+                    method = "xgbTree", objective = "count:poisson", 
+                    eval_metric = "poisson-nloglik", trControl = trControl,
+                    tuneGrid = hyperparameters),
+  marginalized = train(x = train_x, y = train_y[["itt_alleg_vtmarginalized"]],
+                       method = "xgbTree", objective = "count:poisson", 
+                       eval_metric = "poisson-nloglik", trControl = trControl,
+                       tuneGrid = hyperparameters)
+)
 
-rmse(cy$itt_alleg_vtdissident, predict(mdl0))
+oos_preds <- mdlX %>%
+  map_dfr(., .id = "yname", function(mm) {
+    out <- tibble(y = mm$pred$obs,
+                  yhat = mm$pred$pred,
+                  row_index = mm$pred$rowIndex)
+    out <- out %>% arrange(row_index) %>% select(-row_index)
+    out
+  })
 
-            
+p <- ggplot(oos_preds, aes(x = yhat, y = y)) +
+  facet_wrap(~ yname) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, linetype = 3) +
+  theme_ipsum() +
+  ggtitle("XGBoost model yhat vs y") 
+ggsave(p, file = "output/mdlX-y-vs-yhat.png", height = 5, width = 12)
+
+
+fit_xgboost <- oos_preds %>%
+  rename(outcome = yname) %>%
+  group_by(outcome) %>%
+  summarize(MAE = mae(y, yhat),
+            RMSE = rmse(y, yhat)) %>%
+  mutate(model_name = "XGBoost") %>%
+  select(outcome, model_name, MAE, RMSE)
+write_csv(fit_xgboost, "output/xgboost-fit.csv")
+
+predictor_importance <- mdlX %>%
+  map_dfr(., .id = "outcome", function(mm) {
+    imp <- varImp(mm)$importance
+    imp <- tibble(predictor = rownames(imp), importance = imp[, 1])
+    imp
+  })
+
+p <- predictor_importance %>%
+  group_by(predictor) %>%
+  mutate(avg_imp = mean(importance)) %>%
+  arrange(avg_imp) %>%
+  ungroup() %>%
+  mutate(predictor = factor(predictor) %>% fct_inorder()) %>%
+  ggplot(., aes(x = importance, y = predictor)) +
+  geom_linerangeh(aes(xmin = 0, xmax = importance, y = predictor, group = outcome), 
+               linetype = 1, color = "gray90", position = position_dodgev(height = .5)) +
+  geom_point(aes(colour = outcome), position = position_dodgev(height = .5)) + 
+  theme_ipsum() +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        legend.position = c(.8, .1)) +
+  labs(x = "XGBoost variable importance, 0-100", y = "") +
+  scale_colour_discrete("Outcome")
+ggsave(p, file = "output/xgboost-variable-importance.png", height = 8, width = 6)
+
+ice <- FALSE
+pd <- mdlX %>%
+  map_df(., .id = "outcome", partial, pred.var = "LJI", ice = ice)
+pd %>%
+  ggplot(., aes(x = LJI, y = yhat)) +
+  facet_wrap(~ outcome) + 
+  geom_line()
+
+pd <- mdlX %>%
+  map_df(., .id = "outcome", partial, pred.var = "NY.GDP.MKTP.KD", ice = ice)
+pd %>%
+  ggplot(., aes(x = NY.GDP.MKTP.KD, y = yhat)) +
+  facet_wrap(~ outcome) + 
+  geom_line()

@@ -32,8 +32,10 @@ The plot is meant to show that while allegation of torture against different vic
 
 Coefficient estimates from 4 models. All are Poisson count models and include country random effects. The first model has intercepts only, second adds GDP per capita and a binary indicator for democracy, derived from Cheibub, Gandhi, and Vreeland. The third and fourth models add latent judicial independence and legal system dummies, respectively. 
 
+In the fit table, note that the fit statistics for XGBoost are out of sample, while those for the count models are in sample. 
+
 ```{r}
-read_csv("output/count-model-fit.csv", 
+res1 <- read_csv("output/count-model-fit.csv", 
          col_types = cols(
            outcome = col_character(),
            model_name = col_character(),
@@ -41,7 +43,17 @@ read_csv("output/count-model-fit.csv",
            BIC = col_double(),
            MAE = col_double(),
            RMSE = col_double()
-         )) %>%
+         )) 
+res2 <- read_csv("output/xgboost-fit.csv",
+                 col_types = cols(
+                   outcome = col_character(),
+                   model_name = col_character(),
+                   MAE = col_double(),
+                   RMSE = col_double()
+                 ))
+res <- bind_rows(res1, res2) 
+res %>% 
+  arrange(outcome, model_name) %>%
   knitr::kable(digits = 2)
   
 ```
@@ -51,3 +63,6 @@ read_csv("output/count-model-fit.csv",
 ![Predicted vs observed](output/mdl1-y-vs-yhat.png)
 
 ![Predicted vs observed](output/mdl3-y-vs-yhat.png)
+
+![Variable importance](output/xgboost-variable-importance.png)
+
