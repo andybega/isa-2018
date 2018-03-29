@@ -113,6 +113,110 @@ Finally, we examine legal rules that reduce the benefit of torturing detainees t
 
 \section*{Analysis}
 
+The ITT data cover the years 1995 to 2005, 11 years in total. Our data consist of country-years for independent states during that period, following the Gleditsch and Ward list \citep{gleditsch:ward:1999}. This makes for a total of around 1,600 observations. We will model three dependent variables consisting of the number of allegations against one of three victim types--criminal, marginalized, and dissident--in a given country-year. In the raw allegation data, a single allegation may specify any number of six different victim types. We split such multi-victim allegations into seperate allegations for each victim type before counting allegations by country-year-victim type. Figure \ref{fig:victim-types} shows the resulting sum total of allegations for each of the six original victim types. As discussed above, there are few allegations of torture of POWs and state agents, so we leave these out. Some of the descriptive plots will retain the "Unknown" victim type allegations, but since we have no expectations regarding how to apportion these, we will also drop this category for the formal modeling further below. Otherwise, the plot shows that allegations of torture of marginalized and criminal victims are at least as common as allegations of torture of dissidents. 
+
+\begin{figure}
+\begin{center}
+\caption{}
+\label{fig:victim-types}
+\includegraphics[width=.5\textwidth]{../output/allegations-by-victim.png}
+\end{center}
+\end{figure}
+
+Figure \ref{fig:selected-series} plots allegation counts for several representative countries. These include Turkey, China, and the US, which have the highest allegation counts overall and the highest counts of allegations of torture of marginalized groups, dissidents, and criminals, respectively. Most countries have few allegations leveled against them at any given time, and in the larger data many country-year-victim type combinations have no allegations at all. Balanced against this are outlying cases like the US and China, with consistently high levels of allegations. Both Turkey and the US have notably more allegations in the 1990's. In the case of Turkey this may correspond to fighting with Kurdish separatists. In any case, there is variation over time that will be hard to explain with relatively constant institutional characteristics. Overall a little bit less than half of the variation in allegation counts is over time, rather than between countries or between victim types. 
+
+\begin{figure}
+\begin{center}
+\caption{}
+\label{fig:selected-series}
+\includegraphics[width=.99\textwidth]{../output/selected-allegation-counts.png}
+\end{center}
+\end{figure}
+
+The time series plots also show that allegations within a country of abuse of different kinds of victims are not always obviously correlated. While in the US allegations of abuse of criminal and marginalized victims were high in the 90's, others were not, for example. This is a broader finding. Figure \ref{fig:correlation-matrix} contains scatterplots that plot the number of allegations of torture of one victim type against another. The second plot in the rop row for example shows dissident against criminal allegations. Each line connects the observations for a country together, and color is based on the correlation coefficient. Each plot also lists the correlation coefficient for that victim type pair when we average over countries, $\bar{r}$. These correlations, if we exclude the trivial self-correlations in the diagonal, are fairly close to the global average of .34. So it is not the case that countries that torture criminals are especially prone to torture marginalized groups as well, as opposed to dissidents. This is evern more pronounced at the country level. About 20\% of the non-trivial correlations are 0 or negative, i.e. countries that have allegations of torture of one kind of victim are less likely to have allegations of torture of another kind of victim. The general point is that allegations of torturing different kinds of victims are only losely related, or, in other words, not all countries (allegedly) torture and those that do often don't (allegedly) torture the same kinds of victims. 
+
+\begin{figure}
+\begin{center}
+\caption{}
+\label{fig:correlation-matrix}
+\includegraphics[width=.99\textwidth]{../output/allegations-by-victim-scatterplots.png}
+\end{center}
+\end{figure}
+
+Examining that variation of allegations that a country tortures one kind of victim but not others is what our paper is about. Can legal and constitutional characteristics explain why some states torture dissidents more than criminals or marginalized groups, and vice versa?
+
+Our modeling strategy is to evaluate the assocation between those potentially protective factors and allegation counts separately for the three most common victim types, criminals, marginalized, and dissidents. We start with bivariate plots and will build up from there to multivariate models. 
+
+For independent and control variables, we use latent judicial independence estimates from \citet{linzer2015global}; legal system types from \citet{mitchell2013domestic}; several variables from the World Development Indicators, including GDP, population, percent of GDP from rents; and democracy indicators from V-Dem\footnote{\url{https://www.v-dem.net/en/}} and \citet{cheibub2010democracy}. A future version of this paper will also use the Comparative Constitutions Project for data on relevant constitutional provisions. 
+
+If we estimate models with country intercepts, it would be more difficult to argue that the apparent effect of judicial independence is not due to spurious correlation driven by some third set of factors. 
+
+\begin{figure}
+\begin{center}
+\caption{}
+\includegraphics[width=.99\textwidth]{../output/count-model-coefs.png}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\caption{}
+\includegraphics[width=.99\textwidth]{../output/model-fit-plot.png}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\caption{}
+\includegraphics[width=.99\textwidth]{../output/mdl1-y-vs-yhat.png}
+\end{center}
+\end{figure}
+
+The random intercepts model should be able to account for most if not all of the between-country variation in torture allegations, which makes up around 60\% of the total variation in torture allegation counts. 
+
+This is generally good for model fit and prediction, but there are two caveats. Possibility of overfitting. Independent variables may also be useful for explainig between country variation, and indeed we have some evidence that this is the case. LJI matters to the extent it can account for over time variation, and it does seem to account for some. Estimating without random effects would probably make it seem to matter more, but we'd be less sure that this is not because of spurious correlation. 
+
+\subsection*{Judicial independence}
+
+\begin{figure}
+\begin{center}
+\caption{}
+\includegraphics[width=.99\textwidth]{../output/scatterplot-itt-allegations-v-lji.png}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\caption{}
+\includegraphics[width=.99\textwidth]{../output/xgboost-variable-importance.png}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\caption{}
+\includegraphics[width=.99\textwidth]{../output/avg-allegations-by-regime.png}
+\end{center}
+\end{figure}
+
+\subsection*{Legal system}
+
+
+
+\section*{Conclusion}
+
+\begin{itemize}
+\item Allegations of torture of marginalized and criminal victims are as common as allegations that dissidents are tortured.
+\item However, the number of allegations that a country tortures one kind of victim are only loosely correlated with allegations for other kinds of victims. In other words, states often don't torture the same kinds of victims, or at least are not alleged to do so.
+\item Judicial independence is related to a slighly lower number of allegations that dissidents are tortured, but not of abuse of criminal and marginalized victims. This bears out in the bivariate analysis and coefficient estimates, but not clearly in terms of model fit (no in the random intercept count models, but yes in the machine learing model). 
+\item Democracies face fewer allegations of torture of dissidents, but similar levels of accusations that they torture marginalized and criminal victims as dictatorships. 
+\item Although judicial independence is higher in democratic regimes, especially parliamentary democracies, its protective effect is in addition to the reduction of dissident torture allegation in democracies, and holds when accounting for regime type. 
+\item There is no evidence of a difference in torture allegations between civil, common law, Islamix, and mixed legal system. 
+\item Wealth and democracy overall have a stronger relationship to torture allegations than judicial independence, but none of them are good explaining why allegations change within a country over time.
+\end{itemize}
+
+One possibility is that institutions dampen the impact of events like insurrections that otherwise lead to an increase in torture (allegations). 
+
 \clearpage
 \begin{singlespace}
 \bibliographystyle{apsr}

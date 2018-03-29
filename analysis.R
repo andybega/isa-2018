@@ -213,6 +213,12 @@ cors_by_country %>%
   geom_histogram(binwidth = .05) +
   theme_ipsum()
   
+# How many bivariate correlations are negative or 0?
+big4 <- cors_by_country %>% filter(var1 %in% keep & var2 %in% keep) 
+nrow(big4)
+sum(big4$cor <= 0, na.rm = TRUE)
+mean(big4$cor <= 0, na.rm = TRUE) 
+mean(big4$cor[big4$cor!=1], na.rm = TRUE)
 
 monster <- cy %>%
   select(gwcode, year, itt_alleg_vtcriminal:itt_alleg_vtunst) %>%
@@ -227,20 +233,30 @@ monster <- cy %>%
   # drop in correlations
   left_join(., cors_by_country, by = c("gwcode", "var1", "var2"))
 
+cors <- cors_by_country %>% 
+  group_by(var1, var2) %>%
+  summarize(cor = mean(cor, na.rm = T)) %>%
+  ungroup() %>%
+  filter(var1 %in% keep & var2 %in% keep) %>%
+  mutate(var1 = str_replace(var1, "itt_alleg_vt", "") %>% str_to_title() %>% dplyr::recode("Unst" = "Unknown"),
+         var2 = str_replace(var2, "itt_alleg_vt", "") %>% str_to_title() %>% dplyr::recode("Unst" = "Unknown")) 
+
 p <- monster %>%
   filter(var1 %in% keep & var2 %in% keep) %>%
   mutate(var1 = str_replace(var1, "itt_alleg_vt", "") %>% str_to_title() %>% dplyr::recode("Unst" = "Unknown"),
          var2 = str_replace(var2, "itt_alleg_vt", "") %>% str_to_title() %>% dplyr::recode("Unst" = "Unknown")) %>%
-  ggplot(., aes(x = x, y = y, group = gwcode, colour = cor)) +
+  ggplot(.) +
   facet_grid(var1 ~ var2) +
   scale_x_continuous(trans = "log1p") +
   scale_y_continuous(trans = "log1p") +
-  scale_colour_gradient2(limits = c(-1, 1)) +
-  geom_line(alpha = .5) +
+  scale_colour_gradient2(limits = c(-1, 1), low = "#a50026", mid = "#ffffbf", high = "#313695") +
+  geom_line(alpha = .5, aes(x = x, y = y, group = gwcode, colour = cor)) +
   theme_ipsum() +
   ggtitle("Allegations of torture against different types of victims are only loosely correlated within countries",
           sub = "Each line plots the number of allegations of torture for two victim types in a country from 1995 to 2005.\nThe slope of each line is the within-country correlation between the # of allegations of torture for those two victim types.") +
-  labs(x = "ln(# of allegations + 1)", y = "ln(# of allegations + 1)")
+  labs(x = "ln(# of allegations + 1)", y = "ln(# of allegations + 1)") +
+  geom_text(data = cors, aes(x = .5, y = 100, label = paste0("bar(r) == ", round(cor, 2))), 
+            parse = TRUE, hjust = 0)
 ggsave(p, file = "output/allegations-by-victim-scatterplots.png", height = 8, width = 10, scale = 1.2)
 
 
@@ -341,18 +357,6 @@ mdl2 <-  list(
 )
 attr(mdl2, "class") <- "itt"
 
-mdl2b <-  list(
-  criminal     = glmer.nb(
-    itt_alleg_vtcriminal ~ (1|gwcode) + 1 + log(NY.GDP.PCAP.KD), 
-    data = cy),
-  dissident    = glmer.nb(
-    itt_alleg_vtdissident ~ (1|gwcode) + 1 + log(NY.GDP.PCAP.KD), 
-    data = cy),
-  marginalized = glmer.nb(
-    itt_alleg_vtmarginalized ~ (1|gwcode) + 1 + log(NY.GDP.PCAP.KD), 
-    data = cy)
-)
-attr(mdl2b, "class") <- "itt"
 
 mdl3 <-  list(
   criminal     = glmer(
@@ -366,6 +370,33 @@ mdl3 <-  list(
     data = cy, family = poisson(link = "log"))
 )
 attr(mdl3, "class") <- "itt"
+
+# Do a version without random intercepts
+mdl3b <-  list(
+  criminal     = glm(
+    itt_alleg_vtcriminal ~ 1 + NY.GDP.PCAP.KD_ln + dd_democracy + LJI, 
+    data = cy, family = poisson(link = "log")),
+  dissident    = glm(
+    itt_alleg_vtdissident ~ 1 + NY.GDP.PCAP.KD_ln + dd_democracy + LJI, 
+    data = cy, family = poisson(link = "log")),
+  marginalized = glm(
+    itt_alleg_vtmarginalized ~ 1 + NY.GDP.PCAP.KD_ln + dd_democracy + LJI, 
+    data = cy, family = poisson(link = "log"))
+)
+
+# Do a NB version with random intercepts
+mdl3b <-  list(
+  criminal     = glmer.nb(
+    itt_alleg_vtcriminal ~ (1|gwcode) + 1 + NY.GDP.PCAP.KD_ln + dd_democracy + LJI, 
+    data = cy),
+  dissident    = glmer.nb(
+    itt_alleg_vtdissident ~ (1|gwcode) + 1 + NY.GDP.PCAP.KD_ln + dd_democracy + LJI, 
+    data = cy),
+  marginalized = glmer.nb(
+    itt_alleg_vtmarginalized ~ (1|gwcode) + 1 + NY.GDP.PCAP.KD_ln + dd_democracy + LJI, 
+    data = cy)
+)
+attr(mdl3b, "class") <- "itt"
 
 
 mdl4 <-  list(
@@ -404,10 +435,34 @@ ggsave(p, file = "output/mdl3-y-vs-yhat.png", height = 5, width = 12)
 
 coefs <- tibble(model_name = paste0("mdl", 1:4)) %>%
   mutate(estimates = map(model_name, function(x) tidy.itt(get(x)))) %>%
-  unnest(estimates)
+  unnest(estimates) %>%
+  # add a dummy row so factor level gets plotted
+  bind_rows(., tibble(y = "itt_alleg_vtcriminal", 
+                      term = "Legal system Civil\n(reference category)",
+                      model_name = "mdl1")) %>%
+  mutate(y = str_replace(y, "itt_alleg_vt", "") %>% str_to_title(),
+         model_name = factor(model_name) %>%
+           fct_recode("M1: Intercepts-only" = "mdl1",
+                      "M2: GDP + pop" = "mdl2",
+                      "M3: M2 + LJI" = "mdl3",
+                      "M4: M2 + legal_system" = "mdl4")) %>%
+  mutate(term = factor(term) %>%
+           fct_recode("Global intercept" = "(Intercept)",
+                      "Country intercepts, SD" = "sd_(Intercept).gwcode",
+                      "ln GDP per capita" = "NY.GDP.PCAP.KD_ln",
+                      "Judicial independence" = "LJI",
+                      "Legal system Common" = "mrs_legalsysCommon",
+                      "Legal system Islamic" = "mrs_legalsysIslamic",
+                      "Legal system Mixed" = "mrs_legalsysMixed") %>%
+           fct_relevel(c("Country intercepts, SD", "Global intercept", 
+                         "ln GDP per capita")) %>%
+           fct_relevel(c("Legal system Mixed", "Legal system Islamic",
+                         "Legal system Common", "Legal system Civil\n(reference category)",
+                         "Judicial independence"), after = Inf))
 
 h_width = .7
 p <- ggplot(coefs, aes(y = estimate, x = term, color = model_name, group = model_name)) +
+  geom_hline(yintercept = 0, linetype = 1, color = "gray70", size = .4) +
   facet_wrap(~ y) +
   coord_flip() +
   geom_linerange(aes(ymin = estimate - 1.96*std.error, ymax = estimate + 1.96*std.error),
@@ -415,7 +470,9 @@ p <- ggplot(coefs, aes(y = estimate, x = term, color = model_name, group = model
   geom_linerange(aes(ymin = estimate - 1.28*std.error, ymax = estimate + 1.28*std.error),
                  position = position_dodge(width = h_width), size = 1) +
   geom_point(position = position_dodge(width = h_width)) +
-  theme_ipsum()
+  theme_ipsum() +
+  labs(x = "", y = "") +
+  scale_color_discrete("Model")
 ggsave(p, file = "output/count-model-coefs.png", height = 5, width = 10)
 
 fit <- tibble(model_name = paste0("mdl", 1:4)) %>%
@@ -475,6 +532,61 @@ mdl5 <-  list(
     data = cy, family = poisson(link = "log"))
 )
 
+
+# Do democracies torture only dissidents less?
+avg_allegations_by_regime <- cy %>%
+  filter(!is.na(regime)) %>%
+  select(gwcode, year, itt_alleg_vtcriminal:itt_alleg_vtmarginalized, regime) %>%
+  gather(Victim, Allegations, starts_with("itt_alleg")) %>%
+  # Clean up victim factor labels
+  mutate(Victim = str_replace(Victim, "itt_alleg_vt", "") %>% str_to_title()) %>%
+  group_by(Victim, regime) %>%
+  summarize(mean_Allegations = mean(Allegations))
+
+p <- ggplot(avg_allegations_by_regime) +
+  geom_point(aes(x = mean_Allegations, y = regime, colour = Victim)) +
+  geom_path(aes(x = mean_Allegations, y = regime, group = Victim, colour = Victim),
+            linetype = 3) +
+  theme_ipsum() +
+  labs(y = "", x = "Average # of allegations per country-year")
+ggsave(p, file = "output/avg-allegations-by-regime.png", height = 3, width = 5)
+
+# It appears that this is the case, compare average by binary democracy/dictatorship
+# to confirm
+cy %>%
+  filter(!is.na(regime)) %>%
+  select(gwcode, year, itt_alleg_vtcriminal:itt_alleg_vtmarginalized, dd_democracy) %>%
+  gather(Victim, Allegations, starts_with("itt_alleg")) %>%
+  # Clean up victim factor labels
+  mutate(Victim = str_replace(Victim, "itt_alleg_vt", "") %>% str_to_title()) %>%
+  group_by(Victim, dd_democracy) %>%
+  summarize(mean_Allegations = mean(Allegations))
+
+# However, there is a lot of variation around the means, so this is not a very
+# large pattern. 
+cy %>%
+  filter(!is.na(regime)) %>%
+  select(gwcode, year, itt_alleg_vtcriminal:itt_alleg_vtmarginalized, regime) %>%
+  gather(Victim, Allegations, starts_with("itt_alleg")) %>%
+  # Clean up victim factor labels
+  mutate(Victim = str_replace(Victim, "itt_alleg_vt", "") %>% str_to_title()) %>%
+  ggplot(.) +
+  geom_boxplot(aes(x = regime, y = Allegations, color = Victim))
+
+# Is it possible that Cheibub et all's semi-presidential and presidential
+# democracies include some regimes with authoritarian tendences, which explains
+# why as many allegations of criminal, marginalized torture?
+# Doesn't seem that way if we look at polyarchy, as there is no clear assocation.
+cy %>%
+  filter(!is.na(regime)) %>%
+  select(gwcode, year, itt_alleg_vtcriminal:itt_alleg_vtmarginalized, v2x_polyarchy) %>%
+  gather(Victim, Allegations, starts_with("itt_alleg")) %>%
+  # Clean up victim factor labels
+  mutate(Victim = str_replace(Victim, "itt_alleg_vt", "") %>% str_to_title()) %>%
+  ggplot(., aes(x = v2x_polyarchy, y = Allegations)) +
+  facet_wrap(~ Victim) +
+  geom_point() +
+  geom_smooth()
 
 
 # Throw xgboost at it -----------------------------------------------------
@@ -632,6 +744,5 @@ p <- res %>%
             linetype = 3) +
   facet_wrap(~ metric, scales = "free") +
   theme_ipsum() +
-  ggtitle("Model fit") +
   labs(x = "", y = "")
 ggsave(p, file = "output/model-fit-plot.png", height = 5, width = 8)
