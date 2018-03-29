@@ -85,6 +85,61 @@ tidy_cormat <- function(X) {
     gather(var2, cor, -var1) 
 }
 
+varDecomp <- function(group, var) {
+  # Decompose variance
+  # group - vector denoting group membership
+  # var   - variable to decompose
+  # Returns vector with total, within, and between variance
+  
+  # Calculate raw deviations
+  df <- data.frame(group=group, var=var)
+  df$group.mean <- ave(df$var, df$group)
+  df$within <- with(df, var - group.mean)
+  df$between <- with(df, group.mean - mean(var))
+  
+  # Calculate variance given df with var, within and between dev.
+  v.total   <- mean((var - mean(var))^2)
+  v.within  <- mean(df$within^2)
+  v.between <- mean(df$between^2)
+  res <- c(total=v.total, within=v.within, between=v.between)
+  res
+}
+
+cv_predict.itt <- function(model, data, folds) {
+  # Obtain OOS predictions via CV
+  # model: a model or list of models
+  # data: the original data (since different models store data in different values, don't try auto pry)
+  if (!class(model)[1] %in%  c("list", "itt")) {
+    model <- list(model = model)
+  }
+  data <- data %>%
+    ungroup() %>%
+    mutate(.row_index = 1:n()) %>%
+    # !!! this is hard coded grouping var
+    group_by(gwcode) %>%
+    mutate(.fold = paste0("fold", base::sample(1:folds, size = n(), replace = TRUE)))
+  
+  oob_preds <- map_df(model, .id = "model_name", df = data, .f = function(mm, df) {
+    oob_preds <- map_dfr(1:folds, mm = mm, df = df, .f = function(ff, mm, df) {
+      drop_fold <- paste0("fold", ff)
+      yname <- names(mm@frame)[1]
+      out_of_bag <- df[df$.fold==drop_fold, ]
+      train_data <- df[df$.fold!=drop_fold, ]
+      new_model <- update(mm, data = train_data)
+      oob_preds <- tibble(yname = yname,
+                          y = out_of_bag[[yname]], 
+                          yhat = predict(new_model, type = "response", newdata = out_of_bag,
+                                         allow.new.levels = TRUE),
+                          .row_index = out_of_bag[[".row_index"]],
+                          .fold = drop_fold)
+      oob_preds
+    })
+    oob_preds
+  })
+  oob_preds
+}
+
+
 
 # Plotting outcomes -------------------------------------------------------
 
@@ -196,6 +251,14 @@ p <- itt %>%
 ggsave(p, file = "output/selected-levels-of-torture.png", height = 5, width = 10, scale = 1.2)
 
 
+# How much variance is within countries/victim-types?
+df <- cy %>%
+  select(gwcode, starts_with("itt_alleg_vt"), -itt_alleg_vtall) %>%
+  gather(victim, allegations, starts_with("itt_alleg"))
+varDecomp(paste0(df$gwcode, df$victim), df$allegations)
+df2 <- filter(df, victim %in% c("itt_alleg_vtcriminal", "itt_alleg_vtdissident", "itt_alleg_vtmarginalized"))
+varDecomp(paste0(df2$gwcode, df2$victim), df2$allegations)
+
 cors_by_country <- cy %>%
   select(gwcode, itt_alleg_vtcriminal:itt_alleg_vtunst) %>%
   group_by(gwcode) %>%
@@ -217,7 +280,7 @@ cors_by_country %>%
 big4 <- cors_by_country %>% filter(var1 %in% keep & var2 %in% keep) 
 nrow(big4)
 sum(big4$cor <= 0, na.rm = TRUE)
-mean(big4$cor <= 0, na.rm = TRUE) 
+mean(big4$cor[big4$cor!=1] <= 0, na.rm = TRUE) 
 mean(big4$cor[big4$cor!=1], na.rm = TRUE)
 
 monster <- cy %>%
@@ -498,6 +561,23 @@ fit <- tibble(model_name = paste0("mdl", 1:4)) %>%
 
 write_csv(fit, "output/count-model-fit.csv")
 
+
+# Count model out of sample fit -------------------------------------------
+
+oos_preds <- tibble(model_name = paste0("mdl", 1:4)) %>%
+  mutate(preds = map(model_name, function(x) cv_predict.itt(get(x), data = cy, folds = 11))) %>%
+  unnest()
+oos_fit <- oos_preds %>%
+  filter(!is.na(yhat)) %>%
+  rename(outcome = yname) %>%
+  mutate(outcome = str_replace(outcome, "itt_alleg_vt", "")) %>%
+  group_by(model_name, outcome) %>%
+  summarize(MAE = mae(y, yhat), RMSE = rmse(y, yhat)) %>%
+  arrange(outcome, model_name)
+write_csv(oos_fit, "output/count-model-oos-fit.csv")
+
+
+
 # What are the average counts by country?
 p <- cy %>%
   select(gwcode, year, itt_alleg_vtcriminal:itt_alleg_vtmarginalized) %>%
@@ -723,16 +803,27 @@ res1 <- read_csv("output/count-model-fit.csv",
                    MAE = col_double(),
                    RMSE = col_double()
                  )) 
-res2 <- read_csv("output/xgboost-fit.csv",
+res1$type <- "in sample"
+res2 <- read_csv("output/count-model-oos-fit.csv", 
+                 col_types = cols(
+                   outcome = col_character(),
+                   model_name = col_character(),
+                   MAE = col_double(),
+                   RMSE = col_double()
+                 )) 
+res2$type <- "out of sample"
+res3 <- read_csv("output/xgboost-fit.csv",
                  col_types = cols(
                    outcome = col_character(),
                    model_name = col_character(),
                    MAE = col_double(),
                    RMSE = col_double()
                  ))
-res <- bind_rows(res1, res2) 
+res3$type <- "out of sample"
+res <- bind_rows(res1, res2, res3) 
 p <- res %>%
   gather(metric, value, AIC:RMSE) %>%
+  filter(type=="out of sample" | metric %in% c("AIC", "BIC")) %>%
   mutate(model_name = factor(model_name) %>% fct_rev() %>%
            fct_recode("Intercepts-only" = "mdl1",
                       "GDP + pop (M2)" = "mdl2",

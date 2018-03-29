@@ -143,17 +143,22 @@ The time series plots also show that allegations within a country of abuse of di
 \end{center}
 \end{figure}
 
-Examining that variation of allegations that a country tortures one kind of victim but not others is what our paper is about. Can legal and constitutional characteristics explain why some states torture dissidents more than criminals or marginalized groups, and vice versa?
+Examining that variation of allegations that a country tortures one kind of victim but not others is part of the goal of this paper. Can legal and constitutional characteristics explain why some states torture dissidents more than criminals or marginalized groups, and vice versa?
 
 Our modeling strategy is to evaluate the assocation between those potentially protective factors and allegation counts separately for the three most common victim types, criminals, marginalized, and dissidents. We start with bivariate plots and will build up from there to multivariate models. 
 
 For independent and control variables, we use latent judicial independence estimates from \citet{linzer2015global}; legal system types from \citet{mitchell2013domestic}; several variables from the World Development Indicators, including GDP, population, percent of GDP from rents; and democracy indicators from V-Dem\footnote{\url{https://www.v-dem.net/en/}} and \citet{cheibub2010democracy}. A future version of this paper will also use the Comparative Constitutions Project for data on relevant constitutional provisions. 
 
-If we estimate models with country intercepts, it would be more difficult to argue that the apparent effect of judicial independence is not due to spurious correlation driven by some third set of factors. 
+Altogether we present four multivariate models. These are Poisson regression models with random intercepts for countries. We include random intercepts for two reasons. The first is that we will evaluate our models in part by their ability to predict outcomes, i.e. model fit, and including random country intercepts improves model fit a lot. The second is that by soaking up between country variation in outcomes, we can be more certain that any assocations we find for judicial independence and legal systems are not spurious correlations driven by other factors. The downsides are also twofold. The number of observations per group are not very large, 11 years per country at most, which could be problematic both for estimating model parameters and overfitting. The former seems to be more of an issue than the latter, as out of sample accuracy is fairly close to in-sample accuracy. And to the extent that judicial independence and legal system types really do account for cross-country differences in torture allegation levels, we are stacking the odds against finding so. 
+
+In addition to the coefficient estimates for the variables that interest us, we also consider the impact of adding a variable on model fit, and out of sample fit specifically. For the latter we used 11-fold cross-validation, which roughly corresponds to predicting one year at a time with the remaining 10 years of data. 
+
+Figures \ref{fig:coefs} and \ref{fig:fit} show the coefficient estimates and model fit for the 6 models we estimated in total. The first model is an intercept only model, i.e. with the global and country random intercepts, and establishes one of the baselines for fit. The last most is a commonly used machine learning predictive model, XGBoost. The model is an ensemble of decision trees, where each decision tree is specifically trained to reduce leftover prediction error given the current ensemble prediction. Each component decision tree itself is a very simple model that predicts allegation counts by splitting the input data into several groups based on the values observations have on selected independent variables. The out of sample predictions for this model also come via cross-validation, but we did not use cross-validation to tune the model hyperparameters as is usual in order to avoid the need for separate test sets.  
 
 \begin{figure}
 \begin{center}
 \caption{}
+\label{fig:coefs}
 \includegraphics[width=.99\textwidth]{../output/count-model-coefs.png}
 \end{center}
 \end{figure}
@@ -161,6 +166,7 @@ If we estimate models with country intercepts, it would be more difficult to arg
 \begin{figure}
 \begin{center}
 \caption{}
+\label{fig:fit}
 \includegraphics[width=.99\textwidth]{../output/model-fit-plot.png}
 \end{center}
 \end{figure}
@@ -172,15 +178,14 @@ If we estimate models with country intercepts, it would be more difficult to arg
 \end{center}
 \end{figure}
 
-The random intercepts model should be able to account for most if not all of the between-country variation in torture allegations, which makes up around 60\% of the total variation in torture allegation counts. 
-
-This is generally good for model fit and prediction, but there are two caveats. Possibility of overfitting. Independent variables may also be useful for explainig between country variation, and indeed we have some evidence that this is the case. LJI matters to the extent it can account for over time variation, and it does seem to account for some. Estimating without random effects would probably make it seem to matter more, but we'd be less sure that this is not because of spurious correlation. 
-
 \subsection*{Judicial independence}
+
+The first factor we examine estimates of latent judicial independence, a continuous variable ranging from 0 to 1. The plots of judicial independence against torture allegations in Figure \ref{fig:lji-bivariate}, which include bivariate regression estimates in the blue line, show a 
 
 \begin{figure}
 \begin{center}
 \caption{}
+\label{fig:lji-bivariate}
 \includegraphics[width=.99\textwidth]{../output/scatterplot-itt-allegations-v-lji.png}
 \end{center}
 \end{figure}
