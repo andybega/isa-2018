@@ -377,7 +377,20 @@ p <- cy %>%
   geom_smooth(method = "lm") +
   theme_ipsum() +
   labs(y = "Latent judicial independence") 
-ggsave(p, file = "output/scatterplot-itt-allegations-v-lji.png", height = 10, width = 10)
+ggsave(p, file = "output/scatterplot-itt-allegations-v-lji.png", height = 8, width = 10)
+
+p <- cy %>%
+  select(gwcode, year, mrs_legalsys, itt_alleg_vtcriminal:itt_alleg_vtmarginalized, itt_alleg_vtunst) %>%
+  gather(yvar, value, starts_with("itt_alleg")) %>%
+  mutate(yvar = str_replace(yvar, "itt_alleg_vt", "") %>% str_to_title(),
+         yvar = replace(yvar, yvar=="Unst", "Unknown")) %>%
+  ggplot(., aes(x = mrs_legalsys, y = value)) +
+  facet_wrap(~ yvar) +
+  geom_boxplot() +
+  scale_y_continuous("ln(# allegations + 1)", trans = "log1p") +
+  theme_ipsum() +
+  labs(y = "Legaly system type") 
+ggsave(p, file = "output/boxplots-itt-allegations-v-legalsys.png", height = 8, width = 10)
 
 
 # Count models with ITT allegations ---------------------------------------

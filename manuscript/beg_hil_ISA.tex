@@ -113,7 +113,7 @@ Finally, we examine legal rules that reduce the benefit of torturing detainees t
 
 \section*{Analysis}
 
-The ITT data cover the years 1995 to 2005, 11 years in total. Our data consist of country-years for independent states during that period, following the Gleditsch and Ward list \citep{gleditsch:ward:1999}. This makes for a total of around 1,600 observations. We will model three dependent variables consisting of the number of allegations against one of three victim types--criminal, marginalized, and dissident--in a given country-year. In the raw allegation data, a single allegation may specify any number of six different victim types. We split such multi-victim allegations into seperate allegations for each victim type before counting allegations by country-year-victim type. Figure \ref{fig:victim-types} shows the resulting sum total of allegations for each of the six original victim types. As discussed above, there are few allegations of torture of POWs and state agents, so we leave these out. Some of the descriptive plots will retain the "Unknown" victim type allegations, but since we have no expectations regarding how to apportion these, we will also drop this category for the formal modeling further below. Otherwise, the plot shows that allegations of torture of marginalized and criminal victims are at least as common as allegations of torture of dissidents. 
+The ITT data cover the years 1995 to 2005, 11 years in total. Our data consist of country-years for independent states during that period, following the Gleditsch and Ward list \citep{gleditsch:ward:1999}. This makes for a total of around 1,600 observations. In the raw allegation data, a single allegation may specify any number of six different victim types. We split such multi-victim allegations into seperate allegations for each victim type before counting allegations by country-year-victim type. Figure \ref{fig:victim-types} shows the resulting sum total of allegations for each of the six original victim types. As discussed above, there are few allegations of torture of POWs and state agents, so we leave these out. Some of the descriptive plots will retain the "Unknown" victim type allegations, but since we have no expectations regarding how to apportion these, we will also drop this category for the formal modeling further below. Otherwise, the plot shows that allegations of torture of marginalized and criminal victims are at least as common as allegations of torture of dissidents. 
 
 \begin{figure}
 \begin{center}
@@ -145,19 +145,19 @@ The time series plots also show that allegations within a country of abuse of di
 
 Examining that variation of allegations that a country tortures one kind of victim but not others is part of the goal of this paper. Can legal and constitutional characteristics explain why some states torture dissidents more than criminals or marginalized groups, and vice versa?
 
-Our modeling strategy is to evaluate the assocation between those potentially protective factors and allegation counts separately for the three most common victim types, criminals, marginalized, and dissidents. We start with bivariate plots and will build up from there to multivariate models. 
+We will model three dependent variables consisting of the number of allegations against one of three victim types--criminal, marginalized, and dissident--in a given country-year. These are the three most common victim types. Our modeling strategy is to evaluate the assocation between those potentially protective factors and allegation counts separately for criminals, marginalized, and dissidents. Our results are drawn both from simple bivariate assocations and multivariate models. 
 
 For independent and control variables, we use latent judicial independence estimates from \citet{linzer2015global}; legal system types from \citet{mitchell2013domestic}; several variables from the World Development Indicators, including GDP, population, percent of GDP from rents; and democracy indicators from V-Dem\footnote{\url{https://www.v-dem.net/en/}} and \citet{cheibub2010democracy}. A future version of this paper will also use the Comparative Constitutions Project for data on relevant constitutional provisions. 
 
-Altogether we present four multivariate models. These are Poisson regression models with random intercepts for countries. We include random intercepts for two reasons. The first is that we will evaluate our models in part by their ability to predict outcomes, i.e. model fit, and including random country intercepts improves model fit a lot. The second is that by soaking up between country variation in outcomes, we can be more certain that any assocations we find for judicial independence and legal systems are not spurious correlations driven by other factors. The downsides are also twofold. The number of observations per group are not very large, 11 years per country at most, which could be problematic both for estimating model parameters and overfitting. The former seems to be more of an issue than the latter, as out of sample accuracy is fairly close to in-sample accuracy. And to the extent that judicial independence and legal system types really do account for cross-country differences in torture allegation levels, we are stacking the odds against finding so. 
+Altogether we present results from four multivariate models. These are Poisson regression models with random intercepts for countries. We include random intercepts for two reasons. The first is that we will evaluate our models in part by their ability to predict outcomes, i.e. model fit, and including random country intercepts improves model fit a lot. The second is that by soaking up between country variation in outcomes, we can be more certain that any assocations we find for factors of interest are not spurious correlations driven by other differences between countries. The downsides are also twofold. The number of observations per group are not very large, 11 years per country at most, which could be problematic both for estimating model parameters and overfitting. The former seems to be more of an issue than the latter, as out of sample accuracy is fairly close to in-sample accuracy. And to the extent that judicial independence and legal system types really do account for cross-country differences in torture allegation levels, we are stacking the odds against finding so. 
 
-In addition to the coefficient estimates for the variables that interest us, we also consider the impact of adding a variable on model fit, and out of sample fit specifically. For the latter we used 11-fold cross-validation, which roughly corresponds to predicting one year at a time with the remaining 10 years of data. 
+In addition to the coefficient estimates for the variables that interest us, we also consider the impact of adding a variable on model fit, and out of sample fit specifically. This indicates how well any empirical results are to generalize outside the 11-year coverage of the data. To derive out of sample predictiosn we used 11-fold cross-validation, which roughly corresponds to predicting one year of outcomes with the remaining 10 years of data. 
 
-Figures \ref{fig:coefs} and \ref{fig:fit} show the coefficient estimates and model fit for the 6 models we estimated in total. The first model is an intercept only model, i.e. with the global and country random intercepts, and establishes one of the baselines for fit. The last most is a commonly used machine learning predictive model, XGBoost. The model is an ensemble of decision trees, where each decision tree is specifically trained to reduce leftover prediction error given the current ensemble prediction. Each component decision tree itself is a very simple model that predicts allegation counts by splitting the input data into several groups based on the values observations have on selected independent variables. The out of sample predictions for this model also come via cross-validation, but we did not use cross-validation to tune the model hyperparameters as is usual in order to avoid the need for separate test sets.  
+Figures \ref{fig:coefs} and \ref{fig:fit} show the coefficient estimates and model fit for the 6 models we estimated in total. The first model is an intercept only model, i.e. with the global and country random intercepts, and establishes one of the baselines for fit. The last model is a commonly used machine learning predictive model, XGBoost, which provides another benchmark of the levels of prediction accuracy one should expect to be feasible. The model is an ensemble of decision trees, where each decision tree is specifically trained to reduce leftover prediction error given the current ensemble prediction. Each component decision tree itself is a very simple model that predicts allegation counts by splitting the input data into several groups based on the values observations have on selected independent variables. Hyperparameters for this kind of model are usually tuned via cross-validation. In order to be able to compare the cross-validation predictions to those from the count models, we did not do this and instead left hyperparameters at their default values.
 
 \begin{figure}
 \begin{center}
-\caption{}
+\caption{Coefficient estimates for Poisson regression models of torture allegation counts by victim type. All models include random country intercepts.}
 \label{fig:coefs}
 \includegraphics[width=.99\textwidth]{../output/count-model-coefs.png}
 \end{center}
@@ -165,7 +165,7 @@ Figures \ref{fig:coefs} and \ref{fig:fit} show the coefficient estimates and mod
 
 \begin{figure}
 \begin{center}
-\caption{}
+\caption{Model fit and predictive accuracy. Mean absolute error (MAE) and root mean squared error (RMSE) are calculated using out of sample predictions obtained via 11-fold cross-validation.}
 \label{fig:fit}
 \includegraphics[width=.99\textwidth]{../output/model-fit-plot.png}
 \end{center}
@@ -173,54 +173,84 @@ Figures \ref{fig:coefs} and \ref{fig:fit} show the coefficient estimates and mod
 
 \begin{figure}
 \begin{center}
-\caption{}
+\caption{Predicted versus observed values for the country intercepts-only model (model 1), as an example of what the predictions for all models look like.}
 \includegraphics[width=.99\textwidth]{../output/mdl1-y-vs-yhat.png}
 \end{center}
 \end{figure}
 
-\subsection*{Judicial independence}
+The second count model adds GDP per capita and a binary democracy indicator. These are retained as control variables in the subsequent models. The binary democracy indicator is derived from the Cheibub et al democracy data. This codes six types of regimes, three each for democracies and dictatorships. We collapse the subtypes into a single binary democracy/dictatorship indicator. Adding these two variables significantly improves fit accross all metrics we consider in Figure \ref{fig:fit}.
 
-The first factor we examine estimates of latent judicial independence, a continuous variable ranging from 0 to 1. The plots of judicial independence against torture allegations in Figure \ref{fig:lji-bivariate}, which include bivariate regression estimates in the blue line, show a 
+\textbf{Judicial independence}. The first factor we examine estimates of latent judicial independence, a continuous variable ranging from 0 to 1. Bivariate plots of judicial independence in Figure \ref{fig:lji-bivariate} show that it is related with a decrease in allegations of dissident torture, but it is also apparent that the effect size is not very large in relation to the overall variation in allegation counts. The blue lines show fitted regression lines, and for dissident allegations the coefficient is negative and statistically significant with $p<0.05$. 
+
+Judicial independence is strongly related to regime type, being higher in democracies than dictatorships in general, and highest in parliamentary democracies specifically. In model three, we estimate the effect of judicial independence when controlling for democracy, and the effect on dissident torture remains negative and significant. Judicial independence is associated with a reduced number of dissdent torture allegations, in addition to any protective effects provided in democracies generally. 
+
+In terms of model fit however, adding judicial indepencence does not clearly improve predictive accuracy. The MAE and RMSE slightly decrease, but not by enough to justify the added model complexity if we look at the information criteria AIC and BIC. 
+
+One potential saving grace is provided by the XGBoost model results. It is common to evaluate the input variables for a machine learning model by how much they effect the model's predictive accuracy--"variable importance", and these numbers are shown in Figure \ref{var-imp}. The higher the variable importance, the more a variable matters for predicting the outcome, and latent judicial independence ("LJI") is fairly high up by average importance accross the three outcomes, fifth after GDP, country population, \% of GDP from rents, and GDP per capita. 
+
+Since the XGBoost model does not include random country intercepts and thus reflects a variable's ability to predict between country differences more than the count models with random intercepts do, we can tentatively conclude that the model fit tells us that (1) increases in judicial independence appear to be related to a decrease in torture allegations of dissidents, but (2) also that judicial independence has a stronger ability to explain between country differences in torture allegations. 
+
+\textbf{Democracy}. Democracy itself, if we look at the estimates accross all models and outcomes, appears to be robustly related to a decrease in torture allegations against victims of all three kinds. That probably matches prior expectations, but also is a finding that appears simpler than it is. The relationship betwen democracy and torture allegations estimated in the model are conditional on country wealth and average levels of allegations in a country, via the random intercept. With judicial independence, it turned out that the multivariate effect estimates matched the unconditional, bivariate findings. This is no the case with democracy. 
+
+Unconditionally, and going by allegation numbers, democracies only torture dissidents less than dictatorships. They are accused of torturing marginalized and criminal victims as much or even more than dictatorships are. Figure \ref{democracy} shows the average number of allegations for each of the six regime types in the Cheibub et all classification. Only for dissident victims are the averages when we compare the three democratic and dictatorship regime sub-types clearly lower. One neccessary word of caution here is that while the averages differ, there is a lot of variation around these averages, i.e. differences between groups are outweighted by differences among individual countries and country-years. 
+
+What do we make of this finding? As with judicial independence, they key might lie with changes over time versus differences between countries. Tentatively, it seems that countries that change to a democratic regime type experience a decrease in torture allegations against dissidents, but not criminals and marginalized victimes, and also that overall democratic countries experience higher levels of torture allegations that we might otherwise expect, for reasons that are not clear, or at least not related to wealth alone. 
+
+We did not specifically examine the impact of including the binary democracy indicator on model fit. Probably wealth accounts for most of the fit improvement if we compare models 1 and 2, and the XGBoost results also do not bode well. Logically, the ability of a binary indicator to predict count outcomes will be limited. 
 
 \begin{figure}
 \begin{center}
-\caption{}
+\caption{Bivariate relationships between latent judicial independence and torture allegations by victim type}
 \label{fig:lji-bivariate}
-\includegraphics[width=.99\textwidth]{../output/scatterplot-itt-allegations-v-lji.png}
+\includegraphics[width=.7\textwidth]{../output/scatterplot-itt-allegations-v-lji.png}
 \end{center}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\caption{}
+\caption{XGBoost variable importance for predictive accuracy.}
+\label{var-imp}
 \includegraphics[width=.99\textwidth]{../output/xgboost-variable-importance.png}
 \end{center}
 \end{figure}
 
 \begin{figure}
 \begin{center}
-\caption{}
-\includegraphics[width=.99\textwidth]{../output/avg-allegations-by-regime.png}
+\caption{Average number of torture allegations by victim type and regime type. Note that variation of cases around the averages is much larger than differences between the averages.}
+\label{democracy}
+\includegraphics[width=.7\textwidth]{../output/avg-allegations-by-regime.png}
 \end{center}
 \end{figure}
 
-\subsection*{Legal system}
+\textbf{Legal system}. The last factor we consider is legal system type. The \citet{mitchell2013domestic} classification has four categories: civil, common law, Islamic, and mixed systems. Civil law systems are the most common and we leave this as the reference category. Although the raw data hint at a higher level of allegations of torture of dissidents, and to a lesser extent criminal, in Islamic legal systems (Figure \ref{legal-system}), these differences are not very large and disappear in the multivariate estimates in model 4 in Figure \ref{fig:coefs}. Model fit also suggests that legal system types do not have much of a relationship with torture allegations. 
 
+\begin{figure}
+\begin{center}
+\caption{Torture allegations by victim type accross legal system types}
+\label{legal-system}
+\includegraphics[width=.7\textwidth]{../output/boxplots-itt-allegations-v-legalsys.png}
+\end{center}
+\end{figure}
 
-
-\section*{Conclusion}
+\textbf{Summary}. In our empirical analysis we find that:
 
 \begin{itemize}
 \item Allegations of torture of marginalized and criminal victims are as common as allegations that dissidents are tortured.
 \item However, the number of allegations that a country tortures one kind of victim are only loosely correlated with allegations for other kinds of victims. In other words, states often don't torture the same kinds of victims, or at least are not alleged to do so.
 \item Judicial independence is related to a slighly lower number of allegations that dissidents are tortured, but not of abuse of criminal and marginalized victims. This bears out in the bivariate analysis and coefficient estimates, but not clearly in terms of model fit (no in the random intercept count models, but yes in the machine learing model). 
-\item Democracies face fewer allegations of torture of dissidents, but similar levels of accusations that they torture marginalized and criminal victims as dictatorships. 
+\item Democracies face fewer allegations of torture of dissidents, but similar levels of accusations that they torture marginalized and criminal victims as dictatorships. There is some indirect evidence that changes to a democratic regime reduce torture allegations within a country.
 \item Although judicial independence is higher in democratic regimes, especially parliamentary democracies, its protective effect is in addition to the reduction of dissident torture allegation in democracies, and holds when accounting for regime type. 
 \item There is no evidence of a difference in torture allegations between civil, common law, Islamix, and mixed legal system. 
 \item Wealth and democracy overall have a stronger relationship to torture allegations than judicial independence, but none of them are good explaining why allegations change within a country over time.
 \end{itemize}
 
-One possibility is that institutions dampen the impact of events like insurrections that otherwise lead to an increase in torture (allegations). 
+\section*{Conclusion}
+
+Our empirical results show that the institutional factors we examined--judicial independence, legal system types, and regime type more generally--have relatively small impacts on the number of torture allegations against differnet types of victims. One caveat is that by including country random intercepts in our models, and thus accounting for between country variation, we have stacked the odds against finding strong assocations. Institutional characteristics usually evolve relatively slowly over time, yet this is what our models concentrate on looking for. Indeed, if we were to exclude country intercepts, we would probably find stronger apparent relationships between these factors and torture allegation levels. The flipside however, and benefit of the strategy we adopted, is that we can be more sure that what we have found, namely the protective effects of demoracy and judicial independence on reduced levels of dissident torture, are not spurious results driven by unmodeled and unobserved differences between countries. 
+
+A logical follow up would be to focus explicitly on instances where our variables of interest change within a country and how these changes map onto changes in the levels of torture allegations. This would more clearly support the tentative conclusions we draw in regard to the differences between the count model results and predictive importance for judicial independence and some aspects of democracy that the XGBoost model results hint at. 
+
+Overall, our models leave most of the fluctuation in torture allegation over time unexplained, e.g. it is not clear why allegations spiked in the US and Turkey in the mid to late 1990's for example. It seems reasonable to speculate that internal domestic events, like the Kurdish insurgency in Turkey, are responsible for these spikes. With that in mind, one possibility we have not examined, but which may promise more clear results in respect to judicial and legal factors, is the hypothesis that these factors moderate the impact of adverse events on torture allegations. In other words, is it possible that legal and institutional protections against torture work best by moderating the ability of a state to adopt torture tactics when faced by domestic unrest or rebellion? 
 
 \clearpage
 \begin{singlespace}

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  29 MAR 2018 16:45
+This is pdfTeX, Version 3.14159265-2.6-1.40.18 (TeX Live 2017) (preloaded format=pdflatex 2017.5.23)  30 MAR 2018 10:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -426,7 +426,7 @@ Package natbib Warning: Citation `Hill2016' on page 8 undefined on input line 7
 9.
 
 [8] [9] [10] [11] [12] [13] [14] [15]
-<../output/allegations-by-victim.png, id=265, 2409.0pt x 1505.625pt>
+<../output/allegations-by-victim.png, id=266, 2409.0pt x 1505.625pt>
 File: ../output/allegations-by-victim.png Graphic file (type png)
 
 <use ../output/allegations-by-victim.png>
@@ -434,7 +434,7 @@ Package pdftex.def Info: ../output/allegations-by-victim.png used on input line
  122.
 (pdftex.def)             Requested size: 234.8775pt x 146.78061pt.
 
-<../output/selected-allegation-counts.png, id=268, 3613.5pt x 1806.75pt>
+<../output/selected-allegation-counts.png, id=269, 3613.5pt x 1806.75pt>
 File: ../output/selected-allegation-counts.png Graphic file (type png)
 
 <use ../output/selected-allegation-counts.png>
@@ -458,91 +458,105 @@ Package natbib Warning: Citation `mitchell2013domestic' on page 19 undefined on
 Package natbib Warning: Citation `cheibub2010democracy' on page 19 undefined on
  input line 150.
 
-<../output/count-model-coefs.png, id=296, 3011.25pt x 1505.625pt>
+[19] <../output/count-model-coefs.png, id=304, 3011.25pt x 1505.625pt>
 File: ../output/count-model-coefs.png Graphic file (type png)
 
 <use ../output/count-model-coefs.png>
-Package pdftex.def Info: ../output/count-model-coefs.png used on input line 157
+Package pdftex.def Info: ../output/count-model-coefs.png used on input line 162
 .
 (pdftex.def)             Requested size: 465.06004pt x 232.51942pt.
 
-<../output/model-fit-plot.png, id=297, 2409.0pt x 1505.625pt>
+<../output/model-fit-plot.png, id=305, 2409.0pt x 1505.625pt>
 File: ../output/model-fit-plot.png Graphic file (type png)
 
 <use ../output/model-fit-plot.png>
-Package pdftex.def Info: ../output/model-fit-plot.png used on input line 164.
+Package pdftex.def Info: ../output/model-fit-plot.png used on input line 170.
 (pdftex.def)             Requested size: 465.06004pt x 290.64354pt.
 
-<../output/mdl1-y-vs-yhat.png, id=298, 3613.5pt x 1505.625pt>
+<../output/mdl1-y-vs-yhat.png, id=306, 3613.5pt x 1505.625pt>
 File: ../output/mdl1-y-vs-yhat.png Graphic file (type png)
 
 <use ../output/mdl1-y-vs-yhat.png>
-Package pdftex.def Info: ../output/mdl1-y-vs-yhat.png used on input line 171.
+Package pdftex.def Info: ../output/mdl1-y-vs-yhat.png used on input line 177.
 (pdftex.def)             Requested size: 465.06004pt x 193.76236pt.
-
-<../output/scatterplot-itt-allegations-v-lji.png, id=299, 3011.25pt x 3011.25pt
->
+ [20] [21 <../output/count-model-coefs.png> <../output/model-fit-plot.png>] [22
+ <../output/mdl1-y-vs-yhat.png>] [23]
+<../output/scatterplot-itt-allegations-v-lji.png, id=336, 3011.25pt x 2409.0pt>
 File: ../output/scatterplot-itt-allegations-v-lji.png Graphic file (type png)
- <use ../output/scatterplot-itt-allegations-v-lji.png>
+<use ../output/scatterplot-itt-allegations-v-lji.png>
 Package pdftex.def Info: ../output/scatterplot-itt-allegations-v-lji.png used o
-n input line 184.
-(pdftex.def)             Requested size: 465.06004pt x 465.03886pt.
- [19] [20 <../output/count-model-coefs.png> <../output/model-fit-plot.png>]
-<../output/xgboost-variable-importance.png, id=314, 1806.75pt x 2409.0pt>
+n input line 205.
+(pdftex.def)             Requested size: 328.82707pt x 263.04263pt.
+
+<../output/xgboost-variable-importance.png, id=337, 1806.75pt x 2409.0pt>
 File: ../output/xgboost-variable-importance.png Graphic file (type png)
 
 <use ../output/xgboost-variable-importance.png>
 Package pdftex.def Info: ../output/xgboost-variable-importance.png used on inpu
-t line 191.
+t line 213.
 (pdftex.def)             Requested size: 465.06004pt x 620.07632pt.
 
 
-LaTeX Warning: Float too large for page by 4.17963pt on input line 193.
+LaTeX Warning: Float too large for page by 4.31294pt on input line 215.
 
-<../output/avg-allegations-by-regime.png, id=315, 1505.625pt x 903.375pt>
+<../output/avg-allegations-by-regime.png, id=338, 1505.625pt x 903.375pt>
 File: ../output/avg-allegations-by-regime.png Graphic file (type png)
 
 <use ../output/avg-allegations-by-regime.png>
 Package pdftex.def Info: ../output/avg-allegations-by-regime.png used on input 
-line 198.
-(pdftex.def)             Requested size: 465.06004pt x 279.0371pt.
-LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <12> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 209.
- [21 <../output/mdl1-y-vs-yhat.png>] [22 <../output/scatterplot-itt-allegations
--v-lji.png>] [23 <../output/xgboost-variable-importance.png>] [24 <../output/av
-g-allegations-by-regime.png>]
-(./beg_hil_ISA.bbl [25
+line 221.
+(pdftex.def)             Requested size: 328.82707pt x 197.29575pt.
 
-] [26])
+
+Package natbib Warning: Citation `mitchell2013domestic' on page 24 undefined on
+ input line 225.
+
+
+<../output/boxplots-itt-allegations-v-legalsys.png, id=341, 3011.25pt x 2409.0p
+t>
+File: ../output/boxplots-itt-allegations-v-legalsys.png Graphic file (type png)
+
+ <use ../output/boxplots-itt-allegations-v-legalsys.png>
+Package pdftex.def Info: ../output/boxplots-itt-allegations-v-legalsys.png used
+ on input line 231.
+(pdftex.def)             Requested size: 328.82707pt x 263.04263pt.
+ [24 <../output/scatterplot-itt-allegations-v-lji.png>] [25 <../output/xgboost-
+variable-importance.png>] [26 <../output/avg-allegations-by-regime.png> <../out
+put/boxplots-itt-allegations-v-legalsys.png>]
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <12> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 238.
+ [27] [28] [29] (./beg_hil_ISA.bbl [30
+
+] [31])
 
 Package natbib Warning: There were undefined citations.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 226.
-[27]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 226.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 261.
+[32]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 261.
  (./beg_hil_ISA.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 226.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 226.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 261.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 261.
 Package rerunfilecheck Info: File `beg_hil_ISA.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
 
 
 LaTeX Warning: There were undefined references.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 226.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 261.
  )
 (\end occurred inside a group at level 1)
 
 ### semi simple group (level 1) entered at line 29 (\begingroup)
 ### bottom level 
 Here is how much of TeX's memory you used:
- 7110 strings out of 492995
- 104111 string characters out of 6132704
- 197004 words of memory out of 5000000
- 10472 multiletter control sequences out of 15000+600000
+ 7125 strings out of 492995
+ 104461 string characters out of 6132704
+ 197847 words of memory out of 5000000
+ 10482 multiletter control sequences out of 15000+600000
  14479 words of font info for 56 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 30i,11n,27p,2553b,587s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 30i,11n,27p,2553b,591s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts
 /cm/cmbx10.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/
 cm/cmbx12.pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/c
@@ -555,10 +569,10 @@ pfb></usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb
 </usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></
 usr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></u
 sr/local/texlive/2017/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on beg_hil_ISA.pdf (28 pages, 4999421 bytes).
+Output written on beg_hil_ISA.pdf (33 pages, 5073016 bytes).
 PDF statistics:
- 420 PDF objects out of 1000 (max. 8388607)
- 356 compressed objects within 4 object streams
- 99 named destinations out of 1000 (max. 500000)
- 46 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 451 PDF objects out of 1000 (max. 8388607)
+ 380 compressed objects within 4 object streams
+ 103 named destinations out of 1000 (max. 500000)
+ 51 words of extra memory for PDF output out of 10000 (max. 10000000)
 
