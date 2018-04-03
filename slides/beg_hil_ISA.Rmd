@@ -1,0 +1,27 @@
+---
+title: "Untitled"
+author: "Andreas Beger, Predictive Heuristics"
+date: "4/2/2018"
+output: 
+  beamer_presentation:
+    keep_tex: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Countries torture different victim types
+
+![](../output/allegations-by-victim-scatterplots.png)
+
+## Democracy
+
+![](../output/avg-allegations-by-regime.png)
+
+- Democracies have lower levels of allegations | wealth, random intercept
+
+## Judicial independence
+
+![](../output/scatterplot-itt-allegations-v-lji.png)
+
