@@ -1,0 +1,23 @@
+---
+title: "Comparative Constitutions Project"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+A template for data modules.
+
+## Usage
+
+```{r, eval = FALSE}
+library("tidyverse")
+library("states")
+library("readxl")
+
+source("ccp.R")
+
+ccp <- ccp_api()
+```
+

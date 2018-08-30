@@ -1,0 +1,24 @@
+---
+title: "UCDP/PRIO Armed Conflict Data"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+A template for data modules.
+
+## Usage
+
+```{r}
+library("dplyr")
+library("readr")
+
+source("ucdp-acd.R")
+
+example <- ucdp_acd_api()
+str(example)
+range(example$year)
+```
+

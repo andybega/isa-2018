@@ -1,0 +1,274 @@
+---
+title: "UCDP/PRIO Armed Conflict Data"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE, message=FALSE}
+library("dplyr")
+library("rio")
+library("ggplot2")
+library("lubridate")
+library("states")
+library("tidyr")
+```
+
+[ACD codebook](http://ucdp.uu.se/downloads/ucdpprio/ucdp-prio-acd-4-2016.pdf)
+
+- Int: 
+    - 1 = Minor (25 to 999 deaths) 
+    - 2 = Major (1000+ battle deaths)
+- Cumulative intensity: 1 if a conflict has exceeded 1000 battle deaths in a single year. 
+- Conflict type:
+    - 1 = extrasystemic, colonial wars
+    - 2 = interstate
+    - 3 = internal conflict
+    - 4 = internationalized internal conflict (state + rebels + other states)
+
+```{r load-data, warning=FALSE, message=FALSE, echo = FALSE}
+acd_source <- "input/ucdp-prio-acd-171.xlsx"
+acd_raw <- rio::import(acd_source)
+acd_raw <- acd_raw %>%
+  dplyr::mutate_at(vars(dplyr::contains("date")), as.Date)
+
+gw <- states::state_panel(as.Date(paste0(min(acd_raw$Year), "-12-31")), 
+                          as.Date(paste0(max(acd_raw$Year), "-12-31")),
+                  by = "year", useGW = TRUE)
+```
+Data range:
+
+`r range(acd_raw$Year)`
+
+Since I'm coding by the location of the conflict, rather than participants, separate out the cases where more than one location is listed for a conflict. 
+
+How many conflict-year cases have multiple locations listed?
+
+`r sum(stringr::str_detect(acd_raw$GWNoLoc, ","))` rows out of `r nrow(acd_raw)`, or `r round(sum(stringr::str_detect(acd_raw$GWNoLoc, ","))/nrow(acd_raw)*100, 1)`%, 
+
+```{r, echo = FALSE}
+acd <- acd_raw %>%
+  tidyr::separate_rows(GWNoLoc, sep = ",")
+```
+
+## Variable codebook
+
+These are descriptions for the variables I am creating.
+
+- `internal_confl`: Internal or extrasystemic war taking place in the country, possibly with international involvement by 3rd parties. 
+    - internal_confl_major
+    - internal_confl_minor  
+- `internal_confl_part`: Participant in internal conflict, whether on territory or not.
+    - internal_confl_part_major
+- `war`: participant in interstate conflict, regardless of whether fought on own territory or not. 
+    - war_major         
+    - war_minor         
+- `any_conflict`: Military is engaged in any conflict, whether on foreign soil or not.     
+    - any_conflict_major        
+    - any_conflict_minor        
+- `ext_conf`: Military is engaged in an external conflict not on its own soil.      
+    - ext_conf_major          
+    - ext_conf_minor 
+
+## Internal conflict
+
+### Wars fought on own territory
+
+```{r}
+# Internal conflict
+intconf <- acd %>%
+  dplyr::filter(Type %in% c(1, 3, 4)) %>%
+  dplyr::select(GWNoLoc, Year, Int, Type) %>%
+  dplyr::rename(gwcode = GWNoLoc) %>%
+  dplyr::mutate(gwcode = as.integer(gwcode), 
+                year = as.Date(paste0(Year, "-12-31"))) %>%
+  dplyr::arrange(gwcode, year)
+
+# Code major/minor war, and summarize to highest level for country-year
+intconf <- intconf %>%
+  dplyr::mutate(internal_confl = 1,
+                internal_confl_major = as.integer(Int==2),
+                internal_confl_minor = as.integer(Int==1)) %>%
+  dplyr::select(-Int, -Type, -Year) %>%
+  dplyr::group_by(gwcode, year) %>%
+  dplyr::summarize_all(funs(max))
+
+gw <- dplyr::left_join(gw, intconf, by = c("gwcode", "date" = "year")) %>%
+  tidyr::replace_na(list(internal_confl = 0, internal_confl_major = 0,
+                         internal_confl_minor = 0))
+
+intconf %>%
+  tidyr::gather(conf_type, value, starts_with("internal_confl_")) %>%
+  dplyr::filter(value > 0) %>%
+  ggplot(., aes(x = year, y = factor(gwcode), fill = factor(conf_type))) +
+    geom_tile() +
+    theme_minimal() +
+    theme(legend.position = "top")
+
+```
+
+### Participant in internal conflict, whether on own territory or not
+
+```{r}
+intconf_part <- acd %>%
+  dplyr::filter(Type %in% c(1, 3, 4)) %>%
+  # various GWNo vars have participants and loc, multiple actors seperated by ","
+  tidyr::gather(var, gwcode, starts_with("GWNo")) %>%
+  tidyr::separate_rows(gwcode, sep = ",") %>%
+  # sometimes a field like GWNoA2nd is blank
+  dplyr::filter(!is.na(gwcode)) %>%
+  dplyr::select(gwcode, Year, Int, Type) %>%
+  dplyr::mutate(gwcode = as.integer(gwcode), 
+                year = as.Date(paste0(Year, "-12-31"))) %>%
+  dplyr::arrange(gwcode, year)
+
+# Code major/minor war, and summarize to highest level for country-year
+intconf_part <- intconf_part %>%
+  dplyr::mutate(internal_confl_part = 1,
+                internal_confl_part_major = as.integer(Int==2),
+                internal_confl_part_minor = as.integer(Int==1)) %>%
+  dplyr::select(-Int, -Type, -Year) %>%
+  dplyr::group_by(gwcode, year) %>%
+  dplyr::summarize_all(funs(max))
+
+gw <- dplyr::left_join(gw, intconf_part, by = c("gwcode", "date" = "year")) %>%
+  tidyr::replace_na(list(internal_confl_part = 0, internal_confl_part_major = 0,
+                         internal_confl_part_minor = 0))
+
+intconf_part %>%
+  tidyr::gather(conf_type, value, starts_with("internal_confl_part_")) %>%
+  dplyr::filter(value > 0) %>%
+  ggplot(., aes(x = year, y = factor(gwcode), fill = factor(conf_type))) +
+    geom_tile() +
+    theme_minimal() +
+    theme(legend.position = "top")
+
+```
+
+The major/minor variables are not mutually exlusive, i.e. a country like the US from 2001 on can be involved in both a major and minor conflict, which does not show well in the plot. 
+
+## Interstate conflict
+
+
+```{r}
+acd_mono <- acd %>%
+  dplyr::select(-SideA, -SideA2nd, -SideB, -SideB2nd, -SideBID) %>%
+  tidyr::gather(side, gwcode, GWNoA:GWNoB2nd) %>%
+  dplyr::filter(!is.na(gwcode)) %>%
+  tidyr::separate_rows(gwcode) %>%
+  tidyr::separate_rows(GWNoLoc) %>%
+  dplyr::mutate(gwcode = as.integer(gwcode), 
+                year = as.Date(paste0(Year, "-12-31")))
+
+# Internal conflict
+war <- acd_mono %>%
+  # Interstate war
+  dplyr::filter(Type %in% c(2)) %>%
+  dplyr::select(Year, Int, gwcode) %>%
+  dplyr::rename(year = Year) %>%
+  dplyr::mutate(year = as.Date(paste0(year, "-12-31"))) %>%
+  dplyr::arrange(gwcode, year)
+
+# Code major/minor war, and summarize to highest level for country-year
+war <- war %>%
+  dplyr::mutate(war = 1,
+                war_major = as.integer(Int==2),
+                war_minor = as.integer(Int==1)) %>%
+  dplyr::select(-Int) %>%
+  dplyr::group_by(gwcode, year) %>%
+  dplyr::summarize_all(funs(max))
+
+gw <- dplyr::left_join(gw, war, by = c("gwcode", "date" = "year")) %>%
+  tidyr::replace_na(list(war = 0, war_major = 0, war_minor = 0))
+
+war %>%
+  tidyr::gather(conf_type, value, starts_with("war_")) %>%
+  dplyr::filter(value > 0) %>%
+  ggplot(., aes(x = year, y = factor(gwcode), fill = factor(conf_type))) +
+    geom_tile() +
+    theme_minimal() +
+    theme(legend.position = "top")
+```
+
+
+## Military engaged in any conflict
+
+```{r}
+# Any conflict
+any_conflict <- acd_mono %>%
+  dplyr::select(Year, Int, gwcode) %>%
+  dplyr::rename(year = Year) %>%
+  dplyr::arrange(gwcode, year)
+
+# Code major/minor war, and summarize to highest level for country-year
+any_conflict <- any_conflict %>%
+  dplyr::mutate(any_conflict = 1,
+                any_conflict_major = as.integer(Int==2),
+                any_conflict_minor = as.integer(Int==1)) %>%
+  dplyr::select(-Int) %>%
+  dplyr::mutate(year = as.Date(paste0(year, "-12-31"))) %>%
+  dplyr::group_by(gwcode, year) %>%
+  dplyr::summarize_all(funs(max))
+
+gw <- dplyr::left_join(gw, any_conflict, by = c("gwcode", "date" = "year")) %>%
+  tidyr::replace_na(list(any_conflict = 0, any_conflict_major = 0, 
+                         any_conflict_minor = 0))
+
+any_conflict %>%
+  tidyr::gather(conf_type, value, starts_with("any_conflict_")) %>%
+  dplyr::filter(value > 0) %>%
+  ggplot(., aes(x = year, y = factor(gwcode), fill = factor(conf_type))) +
+    geom_tile() +
+    theme_minimal() +
+    theme(legend.position = "top")
+```
+
+Plotting issue with major/minor. US data is good othewise. Shows major for 2000's. 
+
+## Military engaged in external conflict
+
+Extrasystemic, interstate, or internal with international involvment. 
+
+```{r}
+# External conflict
+ext_conf <- acd_mono %>%
+  # Involved in conflict, but not conflict location -> external
+  dplyr::filter(gwcode != GWNoLoc) %>%
+  dplyr::select(Year, Int, gwcode) %>%
+  dplyr::rename(year = Year) %>%
+  dplyr::arrange(gwcode, year)
+
+# Code major/minor war, and summarize to highest level for country-year
+ext_conf <- ext_conf %>%
+  dplyr::mutate(ext_conf = 1,
+                ext_conf_major = as.integer(Int==2),
+                ext_conf_minor = as.integer(Int==1)) %>%
+  dplyr::select(-Int) %>%
+  dplyr::mutate(year = as.Date(paste0(year, "-12-31"))) %>%
+  dplyr::group_by(gwcode, year) %>%
+  dplyr::summarize_all(funs(max))
+
+gw <- dplyr::left_join(gw, ext_conf, by = c("gwcode", "date" = "year")) %>%
+  tidyr::replace_na(list(ext_conf = 0, ext_conf_major = 0, 
+                         ext_conf_minor = 0))
+
+ext_conf %>%
+  tidyr::gather(conf_type, value, starts_with("ext_conf_")) %>%
+  dplyr::filter(value > 0) %>%
+  ggplot(., aes(x = year, y = factor(gwcode), fill = factor(conf_type))) +
+    geom_tile() +
+    theme_minimal() +
+    theme(legend.position = "top")
+```
+
+## Done, save
+
+```{r}
+acd <- gw
+acd$id <- NULL
+acd$year <- lubridate::year(acd$date)
+acd$date <- NULL
+save(acd, file = "output/acd.rda")
+```
+

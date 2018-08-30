@@ -1,0 +1,21 @@
+---
+title: "Template"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+A template for data modules.
+
+## Usage
+
+```{r, eval = FALSE}
+library("dplyr")
+
+source("template.R")
+
+example <- template_api()
+```
+

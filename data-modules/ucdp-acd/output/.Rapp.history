@@ -1,0 +1,4 @@
+load("/Users/andybega/Work/fcaster/datasets/ucdp-acd/output/acd.rda")
+tail(acd)
+range(acd$year)
+head(acd)

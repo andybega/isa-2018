@@ -1,0 +1,49 @@
+---
+title: "Ethnic Power Relations (EPR)"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Download and get EPR data. 
+
+## Usage
+
+```{r, message=FALSE}
+library("dplyr")
+library("readr")
+library("tidyr")
+library("states")
+
+library("ggplot2")
+library("tidyr")
+
+source("epr.R")
+
+example <- epr_api(what = "raw")
+str(example)
+```
+
+```{r}
+example <- epr_api(what = "monthly")
+str(example)
+```
+
+```{r}
+example %>%
+  gather(var, value, -gwcode, -date, -year) %>%
+  ggplot(aes(x = date, y = value, group = gwcode)) +
+  facet_wrap(~ var, scales = "free_y") +
+  geom_line(alpha = .1) +
+  theme_minimal()
+```
+
+
+Write CSV for the old legacy file-based system.
+
+```{r}
+epr_legacy_csv()
+```
+
