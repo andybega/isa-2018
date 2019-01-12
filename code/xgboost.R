@@ -112,7 +112,7 @@ p <- ggplot(oos_preds, aes(x = yhat, y = y)) +
   geom_abline(intercept = 0, slope = 1, linetype = 3) +
   theme_ipsum() +
   ggtitle("XGBoost model yhat vs y") 
-ggsave(p, file = "output/xgboost-y-vs-yhat.png", height = 5, width = 12)
+ggsave(p, file = "output/figures/xgboost-y-vs-yhat.png", height = 5, width = 12)
 
 
 fit_xgboost <- oos_preds %>%
@@ -147,7 +147,7 @@ p <- predictor_importance %>%
         legend.position = c(.8, .1)) +
   labs(x = "XGBoost variable importance, 0-100", y = "") +
   scale_colour_discrete("Outcome")
-ggsave(p, file = "output/xgboost-variable-importance.png", height = 8, width = 6)
+ggsave(p, file = "output/figures/xgboost-variable-importance.png", height = 8, width = 6)
 
 ice <- FALSE
 pd <- mdlX %>%
@@ -304,6 +304,6 @@ p <- predictor_importance %>%
         legend.position = c(.8, .1)) +
   labs(x = "XGBoost variable importance, 0-100", y = "") +
   scale_colour_discrete("Outcome")
-ggsave(p, file = "output/xgboost-residuals-variable-importance.png", height = 8, width = 6)
+ggsave(p, file = "output/figures/xgboost-residuals-variable-importance.png", height = 8, width = 6)
 p
 

@@ -71,7 +71,6 @@ cnames <- gwstates %>%
   group_by(gwcode) %>% 
   summarize(country = tail(country_name, 1)) %>%
   select(gwcode, country)
-Encoding(cnames$country) <- "latin1"
 cy %>%
   filter(is.na(itt_LoTUnknown)) %>%
   group_by(gwcode) %>%

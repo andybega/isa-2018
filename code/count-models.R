@@ -144,7 +144,7 @@ saveRDS(mdl_base1, file = "output/models/mdl_base1.rds")
 
 par(mfrow = c(1, 3))
 for (i in 1:3) {
-  qqnorm(residuals(mdl_base1[[i]]), main = names(mdl1)[i])
+  qqnorm(residuals(mdl_base1[[i]]), main = names(mdl_base1)[i])
   qqline(residuals(mdl_base1[[i]]))
 }
 
@@ -169,8 +169,17 @@ mdl_base2 <-  list(
 attr(mdl_base2, "class") <- "itt"
 saveRDS(mdl_base2, file = "output/models/mdl_base2.rds")
 
-#cy$SP.POP.TOTL_ln_norm <- scale(cy$SP.POP.TOTL_ln)
-#cy$gtd_events_log1p_norm <- scale(log1p(cy$gtd_events))
+par(mfrow = c(1, 3))
+for (i in 1:3) {
+  qqnorm(residuals(mdl_base2[[i]]), main = names(mdl_base2)[i])
+  qqline(residuals(mdl_base2[[i]]))
+}
+
+plot_predictions(mdl_base2) +
+  scale_x_continuous(limits = c(0, 150))
+
+cy$SP.POP.TOTL_ln_norm <- scale(cy$SP.POP.TOTL_ln)
+cy$gtd_events_log1p_norm <- scale(log1p(cy$gtd_events))
 
 control <- glmerControl(optCtrl=list(maxfun=2e4))
 
@@ -208,9 +217,10 @@ bind_rows(
 
 par(mfrow = c(1, 3))
 for (i in 1:3) {
-  qqnorm(residuals(mdl_base2[[i]]), main = names(mdl2)[i])
+  qqnorm(residuals(mdl_base2[[i]]), main = names(mdl_base2)[i])
   qqline(residuals(mdl_base2[[i]]))
 }
+
 
 # Democracy ---------------------------------------------------------------
 

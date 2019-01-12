@@ -184,7 +184,7 @@ p <- coefs %>%
   labs(x = "", y = "") +
   scale_color_discrete("Model")
 p
-ggsave(p, file = "output/count-model-coefs.png", height = 5, width = 10)
+ggsave(p, file = "output/figures/count-model-coefs.png", height = 5, width = 10)
 
 
 
@@ -262,10 +262,13 @@ p <- res %>%
   gather(metric, value, AIC:RMSE) %>%
   filter(type=="out of sample" | metric %in% c("AIC", "BIC")) %>%
   mutate(model_name = factor(model_name) %>% fct_rev() %>%
-           fct_recode("Intercepts-only" = "mdl1",
-                      "GDP + pop (M2)" = "mdl2",
-                      "M2 + LJI (M3)" = "mdl3",
-                      "M2 + legal_system (M4)" = "mdl4")) %>%
+           fct_recode("Intercepts-only (M1)" = "mdl_base1",
+                      "Controls only (M2)" = "mdl_base2",
+                      "Democracy + intercepts (M1)" = "mdl_dem1",
+                      "Democracy + controls (M2)" = "mdl_dem2",
+                      "LJI + intercepts (M1)" = "mdl_lji1",
+                      "LJI + democracy" = "mdl_lji2",
+                      "legal_system" = "mdl_legal1")) %>%
   ggplot(.) +
   geom_point(aes(x = value, y = model_name, colour = outcome)) +
   geom_path(aes(x = value, y = model_name, group = outcome, colour = outcome),
@@ -273,5 +276,6 @@ p <- res %>%
   facet_wrap(~ metric, scales = "free") +
   theme_ipsum() +
   labs(x = "", y = "")
-ggsave(p, file = "output/model-fit-plot.png", height = 5, width = 8)
+p
+ggsave(p, file = "output/figures/model-fit-plot.png", height = 5, width = 8)
 

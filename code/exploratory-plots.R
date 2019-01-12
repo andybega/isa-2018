@@ -3,7 +3,7 @@ library("tidyverse")
 library("states")
 library("hrbrthemes")
 
-source("input/itt/itt.R")
+source("data-modules/itt/itt.R")
 
 cy <- readRDS("output/cy.rds")
 
@@ -18,6 +18,26 @@ tidy_cormat <- function(X) {
     as_tibble() %>% 
     mutate(var1 = names(.)) %>% 
     gather(var2, cor, -var1) 
+}
+
+varDecomp <- function(group, var) {
+  # Decompose variance
+  # group - vector denoting group membership
+  # var   - variable to decompose
+  # Returns vector with total, within, and between variance
+  
+  # Calculate raw deviations
+  df <- data.frame(group=group, var=var)
+  df$group.mean <- ave(df$var, df$group)
+  df$within <- with(df, var - group.mean)
+  df$between <- with(df, group.mean - mean(var))
+  
+  # Calculate variance given df with var, within and between dev.
+  v.total   <- mean((var - mean(var))^2)
+  v.within  <- mean(df$within^2)
+  v.between <- mean(df$between^2)
+  res <- c(total=v.total, within=v.within, between=v.between)
+  res
 }
 
 # Plotting outcomes -------------------------------------------------------
@@ -45,7 +65,7 @@ p <- cy %>%
   theme_ipsum() +
   labs(y = "", x = "# Allegations") +
   theme(axis.text=element_text(size=11, colour = "gray10", family = "Arial"))
-ggsave(p, file = "output/allegations-by-victim.png", height = 5, width = 8)
+ggsave(p, file = "output/figures/allegations-by-victim.png", height = 5, width = 8)
 
 # What are the average counts by country?
 p <- cy %>%
@@ -56,7 +76,7 @@ p <- cy %>%
   geom_line(alpha = .2) +
   theme_ipsum() +
   ggtitle("What we are trying to model")
-ggsave(p, file = "output/outcome-time-series.png", height = 5, width = 12)
+ggsave(p, file = "output/figures/outcome-time-series.png", height = 5, width = 12)
 
 cy %>%
   select(gwcode, year, itt_alleg_vtcriminal:itt_alleg_vtmarginalized) %>%
@@ -134,7 +154,7 @@ p <- cy %>%
   scale_colour_brewer(type = "qual", palette = 3) +
   theme_ipsum() +
   ggtitle("ITT allegations by victim type for select countries")
-ggsave(p, file = "output/selected-allegation-counts.png", height = 5, width = 10, scale = 1.2)
+ggsave(p, file = "output/figures/selected-allegation-counts.png", height = 5, width = 10, scale = 1.2)
 
 p <- itt %>%
   filter(gwcode %in% c(2, 200, 220, 260, 710, 750, 640, 775)) %>%
@@ -145,7 +165,7 @@ p <- itt %>%
   scale_fill_manual(values = col_vals) +
   theme_ipsum() +
   ggtitle("ITT level of torture by victim type for select countries")
-ggsave(p, file = "output/selected-levels-of-torture.png", height = 5, width = 10, scale = 1.2)
+ggsave(p, file = "output/figures/selected-levels-of-torture.png", height = 5, width = 10, scale = 1.2)
 
 
 # How much variance is within countries/victim-types?
@@ -165,13 +185,34 @@ cors_by_country <- cy %>%
   unnest()
 
 keep <- c("itt_alleg_vtcriminal", "itt_alleg_vtdissident", "itt_alleg_vtmarginalized", "itt_alleg_vtunst")
-cors_by_country %>%
+
+pair_cor <- cors_by_country %>% 
+  group_by(var1, var2) %>%
+  summarize(cor = mean(cor, na.rm = T)) %>%
+  ungroup() %>%
+  filter(var1 %in% keep & var2 %in% keep) %>%
+  mutate(var1 = str_replace(var1, "itt_alleg_vt", "") %>% str_to_title() %>% dplyr::recode("Unst" = "Unknown"),
+         var2 = str_replace(var2, "itt_alleg_vt", "") %>% str_to_title() %>% dplyr::recode("Unst" = "Unknown")) 
+
+p <- cors_by_country %>%
   filter(var1!=var2) %>%
   filter(var1 %in% keep & var2 %in% keep) %>%
-  ggplot(., aes(x = cor, fill = cor)) +
+  mutate(var1 = str_replace(var1, "itt_alleg_vt", "") %>% str_to_title() %>% dplyr::recode("Unst" = "Unknown"),
+         var2 = str_replace(var2, "itt_alleg_vt", "") %>% str_to_title() %>% dplyr::recode("Unst" = "Unknown")) %>%
+  ggplot(., aes(x = cor)) +
   facet_grid(var1 ~ var2) +
-  geom_histogram(binwidth = .05) +
-  theme_ipsum()
+  geom_histogram(binwidth = .05, alpha = .5) +
+  scale_x_continuous(limits = c(-1, 1)) +
+  theme_ipsum() +
+  geom_vline(xintercept = 0, linetype = 3) +
+  geom_vline(data = pair_cor, aes(xintercept = cor)) +
+  geom_text(data = pair_cor, aes(x = cor - .1, y = 10, label = paste0("bar(r) == ", round(cor, 2))), 
+            parse = TRUE, hjust = 1) +
+  #ggtitle("Allegations of torture against different types of victims are only loosely correlated within countries",
+  #        sub = "Each plot is a histogram of the pairwise correlations within each country for # of allegations of torture of x and y victim types") +
+  labs(x = "Correlation between # of allegations of torture in each country for victim types x and y", y = "Count")
+p 
+ggsave(p, file = "output/figures/allegations-by-victim-pairwise-correlations.png", height = 6, width = 8)
 
 # How many bivariate correlations are negative or 0?
 big4 <- cors_by_country %>% filter(var1 %in% keep & var2 %in% keep) 
@@ -193,14 +234,6 @@ monster <- cy %>%
   # drop in correlations
   left_join(., cors_by_country, by = c("gwcode", "var1", "var2"))
 
-cors <- cors_by_country %>% 
-  group_by(var1, var2) %>%
-  summarize(cor = mean(cor, na.rm = T)) %>%
-  ungroup() %>%
-  filter(var1 %in% keep & var2 %in% keep) %>%
-  mutate(var1 = str_replace(var1, "itt_alleg_vt", "") %>% str_to_title() %>% dplyr::recode("Unst" = "Unknown"),
-         var2 = str_replace(var2, "itt_alleg_vt", "") %>% str_to_title() %>% dplyr::recode("Unst" = "Unknown")) 
-
 p <- monster %>%
   filter(var1 %in% keep & var2 %in% keep) %>%
   mutate(var1 = str_replace(var1, "itt_alleg_vt", "") %>% str_to_title() %>% dplyr::recode("Unst" = "Unknown"),
@@ -219,6 +252,6 @@ p <- monster %>%
   ggtitle("Allegations of torture against different types of victims are only loosely correlated within countries",
           sub = "The slope of each line is the within-country correlation between the # of allegations of torture for those two victim types.") +
   labs(x = "ln(# of allegations + 1)", y = "ln(# of allegations + 1)") +
-  geom_text(data = cors, aes(x = .5, y = 100, label = paste0("bar(r) == ", round(cor, 2))), 
+  geom_text(data = pair_cor, aes(x = .5, y = 100, label = paste0("bar(r) == ", round(cor, 2))), 
             parse = TRUE, hjust = 0)
-ggsave(p, file = "output/allegations-by-victim-scatterplots.png", height = 8, width = 10, scale = 1.2)
+ggsave(p, file = "output/figures/allegations-by-victim-scatterplots.png", height = 8, width = 10, scale = 1.2)
