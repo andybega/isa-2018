@@ -1,46 +1,12 @@
 # Legal institutions and oppressive violence
 
-## Notes
+[Daniel Hill](https://spia.uga.edu/faculty-member/daniel-w-hill-jr/), University of Georgia, [dwhill@uga.edu](mailto:dwhill@uga.edu)
 
-- [x] Update data with CCP and V-Dem vars
-- [ ] Simple bivariate relationships; for each of the 15 vars of interest, plot var vs outcome; appendix stuff if include at all
-- [ ] Redo models; for each of the 15 vars of interest:
-    - [ ] Bivariate model, with RE if possible
-    - [ ] Bivariate model with control vars, and RE if possible
-- [ ] Control models
-    - [ ] Only random effects
-    - [ ] Control variables: GDP, pop, itt restricted access (with RE? depends on models above)
-    - [ ] xgboost on restricted var set (control + vars of interest)
-    - [ ] for giggles, xgboost on full data set
-- [ ] Prepare output:
-    - [ ] coefficient plot for vars of interest
-    - [ ] coefficient table for vars of interest
-    - [ ] some kind of fit comparison table (or chart)
-    - [ ] xgboost var importance plot
-- Put some evidence that RE intercepts are related to democracy somewhere in appendix, might be handy at some point
+[Andreas Beger](https://www.andybeger.com), Predictive Heuristics
 
-Cool, I think imputing 0s for those countries will be okay. Here is a list of what we need from CCP: 
-TORTURE - const prohibition on torture; p. 116; 1=always prohibited, 3=prohibited for extracting confession; 96/98=other/not specified
-PREREL - pre-trial release; p. 97
-HABCORP - habeas corpus; p. 97
-DUEPROC - due process; p. 99
-SPEEDTRI - speedy trial; p. 100
+**Abstract**
 
-Why don't we stick with V-Dem for democracy/institutions indicators? I want to stay away from their aggregate democracy indicators, though. Reading the code book, it is pretty clear that some of the components measure government violence, which is not good for us. So let's pull these: 
-v2x_elecoff - elected officials 
-v2xel_frefair - clean elections 
-v2asuffrage - suffrage 
-v2x_jucon - judicial constraints 
-v2xlg_legcon - legislative constraints 
+The literature on government violence focuses primarily on the repression of dissent. But not all state violence targets groups who oppose the government. Much of it targets criminal suspects, immigrants, and other marginalized groups who are not perceived to be challenging the government’s authority. The vast majority of findings concerning state violence comes from analyses that do not distinguish between government violence that targets acts of dissent and violence used for other purposes. Because of this, we have not yet established many empirical facts about the relationship between domestic institutions and violence that is unrelated to the repression of dissent. Though various political and legal institutions are known to reduce the frequency of torture and other violent abuses, it is unclear whether these effects are attributable to reductions in repressive violence, non-repressive violence, or both. We argue that, with respect to non-repressive violence, domestic legal institutions designed to protect the rights of individuals are more important than the political institutions, such as electoral competition, typically associated with democracy. We use the Ill Treatment and Torture data, which can be disaggregated by victim type, to explore the relationship between the torture of criminal suspects and marginalized social groups, and various domestic legal institutions, including judicial independence, legal system type, and constitutional provisions related to arrest and trial procedure.
 
-We should also include indicators that measure the relative status of different social groups, as these are likely to predict torture of marginalized groups. V-Dem has some of these: 
-v2clacjust - poor/rich have same civil libs
-v2clsocgrp - social groups (ethnic) have same civil libs
-v2clnlpct - % that live in geographic areas where civ lib protection is weaker
-v2pepwrses - poor/rich have same power/influence
-v2pepwrsoc - social groups have same power/influence
-
-I think it also makes sense to include the "exclpop" variable from the EPR data, which measures % excluded population. 
-
-We can ditch the binary democracy indicator from Vreeland et al (dd_democracy), as well as legal system type and the judicial independence variable from Linzer/Staton (LJI). Other than what is listed above, I think we will only need population and GDP/capita. I think it makes sense to estimate a count model for each non-control variable, controlling for pop and gdp/capita. And then include everything in xgboost. Does that sound good? I will be working on the draft and will put it on Github as I make progress.
+Presented at ISA 2018, April 4-7, San Francisco ([this commit](https://github.com/andybega/isa-2018/tree/5769c2ed830c4d58b9a7a51da9877fefe65da667))
 
