@@ -18,18 +18,19 @@ itt1 <- itt_api("allegation count", "data-modules/itt")  %>%
 itt2 <- itt_api("by victim", "data-modules/itt")
 cy <- left_join(itt1, itt2, by = c("gwcode", "year")) 
 
-source("data-modules/wdi/wdi.R")
-cy <- wdi_get("data-modules/wdi") %>%
-  dplyr::rename(year = datestr) %>%
+# GDP/pop (mostly from WDI)
+cy <- dir("data-modules/gdppop/output", full.names = TRUE) %>%
+  map(., read_csv, col_types = cols()) %>%
+  reduce(., full_join, by = c("gwcode", "year")) %>%
   dplyr::select(-date) %>%
   dplyr::left_join(cy, ., by = c("gwcode", "year")) %>%
   dplyr::select(gwcode, year, date, everything())
 
+# V-Dem
 # devtools::install_github("xmarquez/vdem")
-source("data-modules/v-dem/vdem.R")
-cy <- vdem_get() %>%
-  mutate(datestr = as.integer(datestr)) %>%
-  left_join(cy, ., by = c("gwcode", "year" = "datestr"))
+cy <- read_rds("data-modules/vdem/output/vdem.rds") %>%
+  select(-date) %>%
+  left_join(cy, ., by = c("gwcode", "year"))
 
 # source("data-modules/des/des.R")
 # cy <- des_get("yearly") %>%
@@ -65,6 +66,13 @@ source("data-modules/gtd/gtd.R")
 cy <- gtd_api("yearly", "data-modules/gtd") %>%
   left_join(cy, ., by = c("gwcode", "year"))
 
+# CCP
+cy <- read_rds("data-modules/ccp/output/ccp.rds") %>%
+  select(-date) %>%
+  rename_at(vars(-gwcode, -year), ~ paste0("ccp_", .)) %>%
+  left_join(cy, ., by = c("gwcode", "year"))
+
+
 # which cases drop out from missing ITT data?
 data(gwstates)
 cnames <- gwstates %>% 
@@ -95,6 +103,31 @@ for (yy in cy %>% select(starts_with("itt_LoT")) %>% names()) {
 yvars <- unlist(yvars)
 attr(cy, "yvars") <- yvars
 
+
+#
+#   Check missing values ----
+#   _________________________
+
+missing_by_col <- sapply(cy, function(x) sum(is.na(x))) %>% sort() %>% `[`(. > 0)
+
+# Drop UAE because missing in V-Dem
+cy <- cy %>%
+  filter(gwcode!=696)
+
+# Drop one of the V-Dem variables because of missingness
+cy <- cy %>%
+  select(-v2clsnlpct)
+
+# Drop all the hensel colonial measures and h_indjudiciary
+cy <- cy %>%
+  select(-h_indjudiciary, -hensel_colonial)
+
+any_mssng <- sum(sapply(cy, function(x) sum(is.na(x))))
+if (any_mssng) stop("There are missing values in cy, something is wrong")
+
+# 
+#   Done, save
+#   _________
 
 saveRDS(cy, file = "output/cy.rds")
 write_csv(cy, path = "output/cy.csv")
