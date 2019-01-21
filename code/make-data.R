@@ -26,6 +26,15 @@ cy <- dir("data-modules/gdppop/output", full.names = TRUE) %>%
   dplyr::left_join(cy, ., by = c("gwcode", "year")) %>%
   dplyr::select(gwcode, year, date, everything())
 
+cy <- cy %>%
+  # Rescale GDP to billions, log, then normalize
+  mutate(NY.GDP.MKTP.KD = NY.GDP.MKTP.KD / 1e9,
+         ln_NY.GDP.MKTP.KD = log(NY.GDP.MKTP.KD),
+         norm_ln_NY.GDP.MKTP.KD = scale(ln_NY.GDP.MKTP.KD)[, 1]) %>%
+  # Log, then normalize pop
+  mutate(ln_pop = log(pop),
+         norm_ln_pop = scale(ln_pop)[, 1])
+
 # V-Dem
 # devtools::install_github("xmarquez/vdem")
 cy <- read_rds("data-modules/vdem/output/vdem.rds") %>%
