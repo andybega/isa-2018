@@ -15,14 +15,7 @@ suppressMessages({
   library("lme4")
 })
 
-
-mae <- function(y, x) {
-  mean(abs(y - x))
-}
-
-rmse <- function(y, x) {
-  sqrt(mean((y - x)^2))
-}
+source("code/functions.R")
 
 cy <- readRDS("output/cy.rds")
 
@@ -33,30 +26,27 @@ cnames <- gwstates %>% group_by(gwcode) %>% summarize(country = unique(country_n
 # Xgboost general count model ---------------------------------------------
 
 
+voi <- c(
+  c("ccp_torture", "ccp_prerel", "ccp_habcorp", "ccp_dueproc", "ccp_speedtri"),
+  c("v2x_elecoff", "v2xel_frefair", "v2asuffrage", "v2x_jucon", 
+    "v2xlg_legcon", "v2clacjust", "v2clsocgrp", "v2pepwrses", "v2pepwrsoc"),
+  c("epr_excluded_groups_count", "epr_excluded_group_pop")
+)
 
 num_data <- cy %>%
-  select(-starts_with("yy_"), -starts_with("itt_LoT"),
-         # doesn't play with step_dummy
-         -hensel_colonial,
-         -starts_with("v2x"), v2x_polyarchy, v2x_libdem,
-         -post.sd,
-         -starts_with("NY."), NY.GDP.PCAP.KD, NY.GDP.MKTP.KD, NY.GDP.TOTL.RT.ZS,
-         -starts_with("SP."), SP.POP.TOTL,
-         -starts_with("IT.")) %>% 
-  mutate(gwcodeUS = as.integer(gwcode==2))
+  select(gwcode, year, one_of(voi), starts_with("norm_"), starts_with("itt_alleg"), "itt_RstrctAccess") %>%
+  mutate(gwcode_fct = factor(gwcode))
 # Don't want to center/scale binary/quasi-categorical vars, so ID those
 binary_vars <- num_data %>%
-  summarize_all(funs(length(unique(.)))) %>%
-  tidyr::gather(var, unique_vals) %>%
-  filter(unique_vals < 10) %>%
+  summarize_all(~ mean(. %in% c(0, 1, 100)) > .9) %>%
+  tidyr::gather(var, quasibinary) %>%
+  filter(quasibinary) %>%
   pull(var)
 num_data <- recipe(num_data) %>%
-  add_role(starts_with("itt_alleg"), new_role = "outcome") %>%
-  add_role(gwcode, year, date, new_role = "ID") %>%
-  add_role(-starts_with("itt_alleg"), -gwcode, -year, -date, new_role = "predictor") %>%
-  step_center(all_numeric(), -all_outcomes(), -has_role("ID"), -one_of(binary_vars)) %>%
-  step_scale(all_numeric(), -all_outcomes(), -has_role("ID"), -one_of(binary_vars)) %>%
-  step_dummy(regime, ht_colonial, mrs_legalsys) %>%
+  step_dummy(gwcode_fct) %>%
+  update_role(everything(), new_role = "predictor") %>%
+  update_role(., starts_with("itt_alleg"), new_role = "outcome") %>%
+  update_role(., gwcode, year, new_role = "ID") %>%
   step_zv(all_predictors()) %>%
   prep(retain = TRUE)
 train_id_vars <- num_data %>%
@@ -68,7 +58,7 @@ train_x <- num_data %>%
   as.matrix()
 
 trControl <- caret::trainControl(method = "cv", number = 11, 
-                                 verboseIter = FALSE, savePredictions = "final")
+                                 verboseIter = FALSE, savePredictions = TRUE)
 
 # http://xgboost.readthedocs.io/en/latest/how_to/param_tuning.html
 # http://xgboost.readthedocs.io/en/latest/parameter.html
@@ -112,6 +102,7 @@ p <- ggplot(oos_preds, aes(x = yhat, y = y)) +
   geom_abline(intercept = 0, slope = 1, linetype = 3) +
   theme_ipsum() +
   ggtitle("XGBoost model yhat vs y") 
+p
 ggsave(p, file = "output/figures/xgboost-y-vs-yhat.png", height = 5, width = 12)
 
 
@@ -119,9 +110,10 @@ fit_xgboost <- oos_preds %>%
   rename(outcome = yname) %>%
   group_by(outcome) %>%
   summarize(MAE = mae(y, yhat),
-            RMSE = rmse(y, yhat)) %>%
+            RMSE = rmse(y, yhat),
+            CRPS = mean(crps_pois(y, yhat)) ) %>%
   mutate(model_name = "XGBoost") %>%
-  select(outcome, model_name, MAE, RMSE)
+  select(outcome, model_name, MAE, RMSE, CRPS)
 write_csv(fit_xgboost, "output/xgboost-fit.csv")
 
 predictor_importance <- mdlX %>%
@@ -132,6 +124,8 @@ predictor_importance <- mdlX %>%
   })
 
 p <- predictor_importance %>%
+  dplyr::filter(!str_detect(predictor, "gwcode_fct")) %>%
+  mutate(predictor = rename_terms(predictor)) %>%
   group_by(predictor) %>%
   mutate(avg_imp = mean(importance)) %>%
   arrange(avg_imp) %>%
@@ -144,10 +138,11 @@ p <- predictor_importance %>%
   theme_ipsum() +
   theme(panel.grid.minor.x = element_blank(),
         panel.grid.major.y = element_blank(),
-        legend.position = c(.8, .1)) +
+        legend.position = c(.8, .2)) +
   labs(x = "XGBoost variable importance, 0-100", y = "") +
   scale_colour_discrete("Outcome")
-ggsave(p, file = "output/figures/xgboost-variable-importance.png", height = 8, width = 6)
+p
+ggsave(p, file = "output/figures/xgboost-variable-importance.png", height = 6, width = 6)
 
 ice <- FALSE
 pd <- mdlX %>%

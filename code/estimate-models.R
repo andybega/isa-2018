@@ -96,7 +96,7 @@ for (xx in voi) {
   for (mm in mt) {
     cat(xx, "-", mm, "\n")
     fh <- sprintf("output/models/mdl_%s_w_controls_%s.rds", xx, mm)
-    mdl <- fit_model(paste0(base_spec, " + ", xx), cy, mm)
+    mdl <- fit_model(paste0(control_spec, " + ", xx), cy, mm)
     write_rds(mdl, path = fh)
   }
 }

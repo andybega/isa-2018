@@ -127,6 +127,51 @@ fit_model <- function(spec_str, data, model_form) {
   )
 }
 
+cv_predict <- function(model_list, data, folds) {
+  # Obtain OOS predictions via CV
+  # model: a model or list of models
+  # data: the original data (since different models store data in different values, don't try auto pry)
+  # Unlike cv_predict.itt, it returns a list of OOB predictions, one for each model in 
+  # input model_list
+  if (folds > length(unique(data$year))) {
+    stop("Only 11 unique years in data, can't blocked-CV more than that")
+  }
+  data <- data %>%
+    ungroup() %>%
+    mutate(.row_index = 1:n()) %>%
+    # !!! this is hard coded grouping var
+    group_by(year) %>%
+    mutate(.fold = paste0("fold", base::sample(1:folds, size = n(), replace = TRUE)))
+  
+  oob_preds <- map(model_list, df = data, .f = function(mm, df) {
+    oob_preds <- map_dfr(1:folds, mm = mm, df = df, .f = function(ff, mm, df) {
+      drop_fold <- paste0("fold", ff)
+      
+      out_of_bag <- df[df$.fold==drop_fold, ]
+      train_data <- df[df$.fold!=drop_fold, ]
+      new_model  <- update(mm, data = train_data)
+      
+      if (class(new_model)[1]=="glmerMod") {
+        yname <- names(mm@frame)[1]
+        yhat  <- predict(new_model, type = "response", newdata = out_of_bag,
+                         allow.new.levels = TRUE)
+      } else {
+        yname <- colnames(x$model)[1]
+        yhat  <- predict(new_model, type = "response", newdata = out_of_bag)
+      }
+      oob_preds <- tibble(yname = yname,
+                          y     = out_of_bag[[yname]], 
+                          yhat  = yhat,
+                          .row_index = out_of_bag[[".row_index"]],
+                          .fold      = drop_fold)
+      oob_preds
+    })
+    oob_preds <- oob_preds %>% arrange(.row_index)
+    oob_preds
+  })
+  oob_preds
+}
+
 cv_predict.itt <- function(model, data, folds) {
   # Obtain OOS predictions via CV
   # model: a model or list of models
@@ -144,7 +189,7 @@ cv_predict.itt <- function(model, data, folds) {
   oob_preds <- map_df(model, .id = "model_name", df = data, .f = function(mm, df) {
     oob_preds <- map_dfr(1:folds, mm = mm, df = df, .f = function(ff, mm, df) {
       drop_fold <- paste0("fold", ff)
-      yname <- names(mm@frame)[1]
+      yname <- ifelse(class(mm)=="glmerMod", names(mm@frame)[1], colnames(x$model)[1])
       out_of_bag <- df[df$.fold==drop_fold, ]
       train_data <- df[df$.fold!=drop_fold, ]
       new_model <- update(mm, data = train_data)
@@ -196,3 +241,45 @@ crps.itt <- function(x) {
   })
 }
 
+
+rename_terms <- function(term) {
+  df <- tibble(term = factor(as.character(term)))
+  suppressWarnings({
+    df <- df %>%
+      mutate(term = fct_recode(term, 
+                               "Global intercept" = "(Intercept)",
+                               "Country intercepts, SD" = "sd_(Intercept).gwcode",
+                               "ln GDP ($ billions)" = "log(NY.GDP.MKTP.KD)",
+                               "ln GDP (normalized)" = "norm_ln_NY.GDP.MKTP.KD",
+                               "ln Population (millions)" = "log(pop)",
+                               "ln Population (normalized)" = "norm_ln_pop", 
+                               "Natural resource rents, %GDP, log(x + 1)" = "log1p(NY.GDP.TOTL.RT.ZS)",
+                               "Democracy, 0/1" = "dd_democracy",
+                               "Judicial independence" = "LJI",
+                               "Internal conflict" = "internal_confl",
+                               "INGO restricted access" = "itt_RstrctAccess",
+                               "Legal system: Common" = "mrs_legalsysCommon",
+                               "Legal system: Islamic" = "mrs_legalsysIslamic",
+                               "Legal system: Mixed" = "mrs_legalsysMixed",
+                               # CCP
+                               "CCP Torture" = "ccp_torture",
+                               "CCP Due process" = "ccp_dueproc",
+                               # EPR
+                               "EPR Excluded groups (count)",
+                               "EPR Excluded gruups (% of total pop)",
+                               # V-Dem
+                               "VDem Suffrage" = "V2asuffrage"),
+             # for ggplot
+             term = fct_rev(term),
+             term = term %>%
+               fct_relevel(c("Country intercepts, SD", "Global intercept", 
+                             "ln Population (millions)", "ln GDP ($ billions)", 
+                             "ln Population (normalized)", "ln GDP (normalized)",
+                             "INGO restricted access")) %>%
+               fct_relevel(c("Legal system: Mixed", "Legal system: Islamic",
+                             "Legal system: Common", "Legal system: Civil\n(reference category)",
+                             "Judicial independence"), after = Inf))
+  })
+  
+  df$term
+}

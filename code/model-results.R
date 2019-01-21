@@ -83,7 +83,7 @@ coefs <- models %>%
                          "Judicial independence"), after = Inf)
          )
 
-h_width = .7
+h_width = .9
 p <- coefs %>%
   filter(term!="Global intercept") %>%
   filter(model_form=="glmer_pois") %>%
@@ -100,7 +100,7 @@ p <- coefs %>%
   labs(x = "", y = "") +
   scale_color_discrete("Specification")
 p
-ggsave(p, file = "output/figures/model-coefs.png", height = 5, width = 10)
+ggsave(p, file = "output/figures/model-coefs.png", height = 10, width = 10)
 
 
 p <- coefs %>%
@@ -118,42 +118,30 @@ p <- coefs %>%
   labs(x = "", y = "") +
   scale_color_discrete("Specification")
 p
-ggsave(p, file = "output/figures/model-coefs-all-model-forms.png", height = 5, width = 10)
+ggsave(p, file = "output/figures/model-coefs-all-model-forms.png", height = 10, width = 10)
 
 
+#   Tables
 
+foo = coefs %>%
+  filter(model_form=="glmer_pois",
+         y=="Criminal") %>%
+  gather(key, value, estimate, std.error) %>%
+  mutate(col = paste0(y, "_", model_name, "_", key)) %>%
+  select(term, col, value) 
 
+stargazer(mdl[[1]], mdl[[2]], type = "text")
 
-# In sample fit -----------------------------------------------------------
-
-
-
-
-fit <- models %>%
-  mutate(AIC = map(model_obj, function(x) {
-    res <- AIC.itt(x)
-    res <- tibble(outcome = names(res), AIC = res)
-  })) %>%
-  mutate(BIC = map(model_obj, function(x) {
-    res <- BIC.itt(x)
-    res <- tibble(outcome = names(res), BIC = res)
-  })) %>%
-  mutate(MAE = map(model_obj, function(x) {
-    res <- mae.itt(x)
-    res <- tibble(outcome = names(res), MAE = res)
-  })) %>%
-  mutate(RMSE = map(model_obj, function(x) {
-    res <- rmse.itt(x)
-    res <- tibble(outcome = names(res), RMSE = res)
-  })) %>%
-  select(-file, -model_obj) %>%
-  unnest() %>%
-  select(outcome, model_name, AIC, BIC, MAE, RMSE) %>%
-  arrange(outcome, model_name)
-write_csv(fit, "output/model-fit-in-sample.csv")
+stargazer(mdl[[1]], mdl[[1]], type = "text", 
+          coef = list(tidy_model$estimate, tidy_model$estimate),
+            se = list(tidy_model$std.error, tidy_model$std.error),
+            add.lines = lapply(1:nrow(fit_stats), function(i) unlist(fit_stats[i, ])),
+            omit.table.layout = "s"
+)
 
 
 # Out of sample fit -------------------------------------------------------
+
 
 oos_preds <- models %>%
   mutate(preds = map(model_obj, function(x) cv_predict.itt(x, data = cy, folds = 11))) %>%
@@ -178,7 +166,9 @@ oos_preds <- oos_preds %>%
 
 with(oos_preds, foo<<-roc.curve(scores.class0 = yhatgt0[ygt0==1], scores.class1 = yhatgt0[ygt0==0], curve = TRUE))
 
+
 # Compose fit plot/table --------------------------------------------------
+
 
 res1 <- read_csv("output/count-model-fit.csv", 
                  col_types = cols(

@@ -40,6 +40,9 @@ cy <- cy %>%
 cy <- read_rds("data-modules/vdem/output/vdem.rds") %>%
   select(-date) %>%
   left_join(cy, ., by = c("gwcode", "year"))
+# v2asuffrage is quasi-binary, but with 0/100, make 0/1
+cy <- cy %>%
+  mutate(v2asuffrage = ifelse(v2asuffrage==100, 1L, v2asuffrage))
 
 # source("data-modules/des/des.R")
 # cy <- des_get("yearly") %>%
