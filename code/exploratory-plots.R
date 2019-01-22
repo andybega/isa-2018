@@ -65,6 +65,7 @@ p <- cy %>%
   theme_ipsum() +
   labs(y = "", x = "# Allegations") +
   theme(axis.text=element_text(size=11, colour = "gray10", family = "Arial"))
+p
 ggsave(p, file = "output/figures/allegations-by-victim.png", height = 5, width = 8)
 
 # What are the average counts by country?
@@ -76,6 +77,7 @@ p <- cy %>%
   geom_line(alpha = .2) +
   theme_ipsum() +
   ggtitle("What we are trying to model")
+p
 ggsave(p, file = "output/figures/outcome-time-series.png", height = 5, width = 12)
 
 cy %>%
@@ -154,6 +156,7 @@ p <- cy %>%
   scale_colour_brewer(type = "qual", palette = 3) +
   theme_ipsum() +
   ggtitle("ITT allegations by victim type for select countries")
+p
 ggsave(p, file = "output/figures/selected-allegation-counts.png", height = 5, width = 10, scale = 1.2)
 
 p <- itt %>%
@@ -165,6 +168,7 @@ p <- itt %>%
   scale_fill_manual(values = col_vals) +
   theme_ipsum() +
   ggtitle("ITT level of torture by victim type for select countries")
+p
 ggsave(p, file = "output/figures/selected-levels-of-torture.png", height = 5, width = 10, scale = 1.2)
 
 
@@ -254,4 +258,39 @@ p <- monster %>%
   labs(x = "ln(# of allegations + 1)", y = "ln(# of allegations + 1)") +
   geom_text(data = pair_cor, aes(x = .5, y = 100, label = paste0("bar(r) == ", round(cor, 2))), 
             parse = TRUE, hjust = 0)
+p
 ggsave(p, file = "output/figures/allegations-by-victim-scatterplots.png", height = 8, width = 10, scale = 1.2)
+
+
+#
+#   Are average allegation levels related to wealth?
+#   _______________________________
+
+
+cy %>%
+  group_by(gwcode) %>%
+  mutate(avg_alleg_criminal = mean(itt_alleg_vtcriminal),
+         avg_alleg_dissident = mean(itt_alleg_vtdissident),
+         avg_alleg_marginalized = mean(itt_alleg_vtmarginalized)) %>%
+  select(gwcode, year, starts_with("avg_alleg_"), starts_with("norm")) %>%
+  gather(var, value, -gwcode, -year, -starts_with("norm")) %>%
+  ggplot(., aes(x = norm_ln_NY.GDP.MKTP.KD, y = log1p(value))) +
+  facet_wrap(~ var) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+df <- cy %>%
+  group_by(gwcode) %>%
+  mutate(avg_alleg_criminal = mean(itt_alleg_vtcriminal),
+         avg_alleg_dissident = mean(itt_alleg_vtdissident),
+         avg_alleg_marginalized = mean(itt_alleg_vtmarginalized)) %>%
+  select(gwcode, year, starts_with("avg_alleg_"), starts_with("norm")) 
+  
+df %>%
+  gather(var, value, -gwcode, -year, -starts_with("norm")) %>%
+  ggplot(., aes(x = norm_ln_pop, y = log1p(value))) +
+  facet_wrap(~ var) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+summary(lm(avg_alleg_criminal ~ norm_ln_NY.GDP.MKTP.KD + norm_ln_pop, data = df))
