@@ -11,9 +11,13 @@ suppressMessages({
   library("caret")
   library("recipes")
   library("pdp")
-  library("glmer")
   library("lme4")
+  library("doMC") 
 })
+
+set.seed(1234)
+
+registerDoMC(cores = 3) 
 
 source("code/functions.R")
 
@@ -62,29 +66,33 @@ trControl <- caret::trainControl(method = "cv", number = 11,
 
 # http://xgboost.readthedocs.io/en/latest/how_to/param_tuning.html
 # http://xgboost.readthedocs.io/en/latest/parameter.html
-hyperparameters <- data.frame(nrounds = 100,
-                              eta = .3,
-                              # tree complexity
-                              max_depth = 5,
-                              min_child_weight = 1,
-                              gamma = 0,
-                              # randomization
-                              colsample_bytree = .6,
-                              subsample = .75)
+generate_random_grid <- function(n) {
+  data.frame(nrounds = sample(c(100, 150, 200, 500, 1000), n, replace = TRUE),
+             eta = runif(n, 0, .5),
+             # tree complexity
+             max_depth = sample(2:10, n, replace = TRUE),
+             min_child_weight = rpois(n, 1),
+             gamma = rexp(n, rate = 5),
+             # randomization
+             colsample_bytree = rbeta(n, 3, 1),
+             subsample = rbeta(n, 5, 2)
+             )
+}
+hp_grid <- generate_random_grid(50)
 
 mdlX <- list(
-  criminal = train(x = train_x, y = train_y[["itt_alleg_vtcriminal"]],
+  criminal = caret::train(x = train_x, y = train_y[["itt_alleg_vtcriminal"]],
                    method = "xgbTree", objective = "count:poisson", 
                    eval_metric = "poisson-nloglik", trControl = trControl,
-                   tuneGrid = hyperparameters),
-  dissident = train(x = train_x, y = train_y[["itt_alleg_vtdissident"]],
+                   tuneGrid = hp_grid),
+  dissident = caret::train(x = train_x, y = train_y[["itt_alleg_vtdissident"]],
                     method = "xgbTree", objective = "count:poisson", 
                     eval_metric = "poisson-nloglik", trControl = trControl,
-                    tuneGrid = hyperparameters),
-  marginalized = train(x = train_x, y = train_y[["itt_alleg_vtmarginalized"]],
+                    tuneGrid = hp_grid),
+  marginalized = caret::train(x = train_x, y = train_y[["itt_alleg_vtmarginalized"]],
                        method = "xgbTree", objective = "count:poisson", 
                        eval_metric = "poisson-nloglik", trControl = trControl,
-                       tuneGrid = hyperparameters)
+                       tuneGrid = hp_grid)
 )
 
 oos_preds <- mdlX %>%
@@ -96,7 +104,9 @@ oos_preds <- mdlX %>%
     out
   })
 
-p <- ggplot(oos_preds, aes(x = yhat, y = y)) +
+p <- oos_preds %>%
+  mutate(yname = str_to_title(yname)) %>%
+  ggplot(., aes(x = yhat, y = y)) +
   facet_wrap(~ yname) +
   geom_point() +
   geom_abline(intercept = 0, slope = 1, linetype = 3) +
@@ -142,7 +152,31 @@ p <- predictor_importance %>%
   labs(x = "XGBoost variable importance, 0-100", y = "") +
   scale_colour_discrete("Outcome")
 p
-ggsave(p, file = "output/figures/xgboost-variable-importance.png", height = 6, width = 6)
+ggsave(p, file = "output/figures/xgboost-variable-importance-v1.png", height = 6, width = 6)
+
+p <- predictor_importance %>%
+  dplyr::filter(!str_detect(predictor, "gwcode_fct")) %>%
+  mutate(predictor = rename_terms(predictor),
+         outcome = str_to_title(outcome)) %>%
+  group_by(predictor) %>%
+  mutate(avg_imp = mean(importance)) %>%
+  arrange(avg_imp) %>%
+  ungroup() %>%
+  mutate(predictor = factor(predictor) %>% fct_inorder()) %>%
+  ggplot(., aes(x = importance, y = predictor)) +
+  geom_linerangeh(aes(xmin = 0, xmax = importance, y = predictor, group = outcome), 
+                  linetype = 1, color = "gray90") +
+  geom_point(aes(colour = outcome)) + 
+  facet_wrap(~ outcome) +
+  theme_ipsum() +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        legend.position = "top") +
+  labs(x = "XGBoost variable importance, 0-100", y = "") +
+  scale_colour_discrete("Outcome", guide = FALSE)
+p
+ggsave(p, file = "output/figures/xgboost-variable-importance-v2.png", height = 6, width = 6)
+
 
 ice <- FALSE
 pd <- mdlX %>%

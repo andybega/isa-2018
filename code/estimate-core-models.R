@@ -17,8 +17,6 @@ voi <- c(
   c("epr_excluded_groups_count", "epr_excluded_group_pop")
 )
 
-
-
 base_spec    <- "~ (1|gwcode) + 1"
 control_spec <- "~ (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess"
 
@@ -311,7 +309,9 @@ for (yy in unique(models$outcome)) {
   fh <- sprintf("output/tables/coefficients-%s.tex", tolower(yy))
   filter(models, outcome==yy) %>%
     pull(model_obj) %>%
-    stargazer() %>%
+    stargazer(float.env = "sidewaystable",
+              no.space = TRUE,
+              font.size = "tiny") %>%
     write_lines(., path = fh)
 }
 
