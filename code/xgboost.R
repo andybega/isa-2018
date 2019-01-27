@@ -13,6 +13,7 @@ suppressMessages({
   library("pdp")
   library("lme4")
   library("doMC") 
+  library("scoringRules")
 })
 
 set.seed(1234)
@@ -70,36 +71,84 @@ generate_random_grid <- function(n) {
   data.frame(nrounds = sample(c(100, 150, 200, 500, 1000), n, replace = TRUE),
              eta = runif(n, 0, .5),
              # tree complexity
-             max_depth = sample(2:10, n, replace = TRUE),
-             min_child_weight = rpois(n, 1),
-             gamma = rexp(n, rate = 5),
+             max_depth = sample(2:15, n, replace = TRUE),
+             min_child_weight = runif(n, 0, 10),
+             gamma = runif(n, 0, 1.5),
              # randomization
-             colsample_bytree = rbeta(n, 3, 1),
-             subsample = rbeta(n, 5, 2)
+             colsample_bytree = runif(n, 0, 1),
+             subsample = runif(n, 0, 1)
              )
 }
-hp_grid <- generate_random_grid(50)
+fixed_grid <- data.frame(
+  nrounds = 100,
+  eta = .3,
+  max_depth = 5,
+  min_child_weight = 1,
+  gamma = 0,
+  colsample_by_tree = .6,
+  subsample = .75
+)
+hp_grid <- generate_random_grid(100)
 
 mdlX <- list(
   criminal = caret::train(x = train_x, y = train_y[["itt_alleg_vtcriminal"]],
                    method = "xgbTree", objective = "count:poisson", 
                    eval_metric = "poisson-nloglik", trControl = trControl,
-                   tuneGrid = hp_grid),
+                   tuneGrid = hp_grid, metric = "MAE"),
   dissident = caret::train(x = train_x, y = train_y[["itt_alleg_vtdissident"]],
                     method = "xgbTree", objective = "count:poisson", 
                     eval_metric = "poisson-nloglik", trControl = trControl,
-                    tuneGrid = hp_grid),
+                    tuneGrid = hp_grid, metric = "MAE"),
   marginalized = caret::train(x = train_x, y = train_y[["itt_alleg_vtmarginalized"]],
                        method = "xgbTree", objective = "count:poisson", 
                        eval_metric = "poisson-nloglik", trControl = trControl,
-                       tuneGrid = hp_grid)
+                       tuneGrid = hp_grid, metric = "MAE")
 )
+
+write_rds(mdlX, path = "output/models/mdl_xgboost.rds")
+
+# Hyperparameter tuning
+# Extract all resample predictions
+resample_preds <- mdlX %>% 
+  enframe("outcome") %>%
+  mutate(pred = map(value, "pred")) %>%
+  select(-value) %>%
+  unnest(pred)
+# ID the hyperparameter group and compute fit metrics
+hp_performance <- resample_preds %>%
+  mutate(hp_group = group_indices(., eta, max_depth, gamma, colsample_bytree, 
+                                  min_child_weight, subsample, nrounds)) %>%
+  group_by(outcome, hp_group) %>%
+  mutate(MAE = mae(obs, pred),
+         RMSE = rmse(obs, pred),
+         CRPS = mean(crps_pois(obs, pred)) ) %>%
+  dplyr::summarize_at(vars(eta:nrounds, MAE:CRPS), unique)
+p <- hp_performance %>%
+  gather(hp, value, eta:nrounds) %>%
+  ggplot(., aes(x = value, y = MAE)) +
+  facet_grid(outcome ~ hp, scales = "free_x") +
+  geom_point() +
+  geom_smooth() +
+  theme_minimal() 
+p
+ggsave(p, file = "output/figures/xgboost-hp-tuning.png", height = 8, width = 12)
+
+
 
 oos_preds <- mdlX %>%
   map_dfr(., .id = "yname", function(mm) {
-    out <- tibble(y = mm$pred$obs,
-                  yhat = mm$pred$pred,
-                  row_index = mm$pred$rowIndex)
+    out <- mm$pred %>%
+      filter(nrounds   == mm$bestTune$nrounds,
+             max_depth == mm$bestTune$max_depth,
+             eta       == mm$bestTune$eta,
+             gamma     == mm$bestTune$gamma,
+             colsample_bytree == mm$bestTune$colsample_bytree,
+             min_child_weight == mm$bestTune$min_child_weight,
+             subsample == mm$bestTune$subsample)
+    out <- out %>%
+      rename(y = obs, yhat = pred, row_index = rowIndex) %>%
+      select(y, yhat, row_index) %>%
+      as_tibble()
     out <- out %>% arrange(row_index) %>% select(-row_index)
     out
   })
@@ -152,7 +201,7 @@ p <- predictor_importance %>%
   labs(x = "XGBoost variable importance, 0-100", y = "") +
   scale_colour_discrete("Outcome")
 p
-ggsave(p, file = "output/figures/xgboost-variable-importance-v1.png", height = 6, width = 6)
+ggsave(p, file = "output/figures/xgboost-variable-importance-v1.png", height = 6, width = 10)
 
 p <- predictor_importance %>%
   dplyr::filter(!str_detect(predictor, "gwcode_fct")) %>%
@@ -175,7 +224,7 @@ p <- predictor_importance %>%
   labs(x = "XGBoost variable importance, 0-100", y = "") +
   scale_colour_discrete("Outcome", guide = FALSE)
 p
-ggsave(p, file = "output/figures/xgboost-variable-importance-v2.png", height = 6, width = 6)
+ggsave(p, file = "output/figures/xgboost-variable-importance-v2.png", height = 6, width = 10)
 
 
 ice <- FALSE

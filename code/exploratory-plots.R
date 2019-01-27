@@ -210,7 +210,7 @@ p <- cors_by_country %>%
   theme_ipsum() +
   geom_vline(xintercept = 0, linetype = 3) +
   geom_vline(data = pair_cor, aes(xintercept = cor)) +
-  geom_text(data = pair_cor, aes(x = cor - .1, y = 10, label = paste0("bar(r) == ", round(cor, 2))), 
+  geom_text(data = pair_cor, aes(x = cor - .1, y = 9, label = paste0("bar(r) == ", round(cor, 2))), 
             parse = TRUE, hjust = 1) +
   #ggtitle("Allegations of torture against different types of victims are only loosely correlated within countries",
   #        sub = "Each plot is a histogram of the pairwise correlations within each country for # of allegations of torture of x and y victim types") +

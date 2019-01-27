@@ -5,6 +5,7 @@ library("nlme")
 library("lme4")
 library("broom")
 library("ggstance")
+library("stargazer")
 
 source("code/functions.R")
 
@@ -277,6 +278,7 @@ write_rds(models, path = "output/core-models.rds")
 
 # Coefficient plot --------------------------------------------------------
 
+models <- read_rds("output/core-models.rds")
 
 coefs <- models %>%
   mutate(estimates = map(model_obj, tidy)) %>%
@@ -299,20 +301,24 @@ p <- coefs %>%
   labs(x = "", y = "") +
   scale_color_discrete("Specification")
 p
-ggsave(p, file = "output/figures/model-coefs.png", height = 10, width = 10)
+ggsave(p, file = "output/figures/model-coefs.png", height = 6, width = 10)
 
 
 # Regression table --------------------------------------------------------
 
 
 for (yy in unique(models$outcome)) {
-  fh <- sprintf("output/tables/coefficients-%s.tex", tolower(yy))
-  filter(models, outcome==yy) %>%
-    pull(model_obj) %>%
-    stargazer(float.env = "sidewaystable",
-              no.space = TRUE,
-              font.size = "tiny") %>%
-    write_lines(., path = fh)
+  for (g in 1:2) {
+    fh <- sprintf("output/tables/coefficients-%s-group%s.tex", tolower(yy), g)
+    filter(models, outcome==yy) %>%
+      mutate(group = ifelse(row_number() < 10, 1, 2)) %>%
+      filter(group==g) %>%
+      pull(model_obj) %>%
+      stargazer(float.env = "sidewaystable",
+                no.space = TRUE,
+                font.size = "tiny") %>%
+      write_lines(., path = fh)
+  }
 }
 
 
@@ -345,5 +351,6 @@ oos_fit_all %>%
   gather(key, value, MAE:CRPS) %>%
   ggplot(., aes(x = value, y = outcome, color = model_name)) +
   facet_wrap(~ key, scales = "free_x") +
-  geom_jitter() +
+  geom_jitter(height = .2, alpha = .5) +
   theme_minimal()
+ggsave("output/figures/oos-fit-all.png", height = 4, width = 10)

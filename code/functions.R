@@ -264,11 +264,22 @@ rename_terms <- function(term) {
                                # CCP
                                "CCP Torture" = "ccp_torture",
                                "CCP Due process" = "ccp_dueproc",
+                               "CCP Habeas corpus" = "ccp_habcorp",
+                               "CCP Pretrial release" = "ccp_prerel",
+                               "CCP Speedy trial" = "ccp_speedtri",
                                # EPR
-                               "EPR Excluded groups (count)",
-                               "EPR Excluded gruups (% of total pop)",
+                               "EPR Excluded groups (count)" = "epr_excluded_groups_count",
+                               "EPR Excluded groups (% of total pop)" = "epr_excluded_group_pop",
                                # V-Dem
-                               "VDem Suffrage" = "V2asuffrage"),
+                               "VDem Suffrage" = "v2asuffrage",
+                               "VDem Civil liberty social class equality" = "v2clacjust",
+                               "VDem Civil liberty social group equality" = "v2clsocgrp",
+                               "VDem Power by socioeconomic position" = "v2pepwrses",
+                               "VDem Power by social group" = "v2pepwrsoc",
+                               "VDem Elected officials index" = "v2x_elecoff",
+                               "VDem Judicial constraints on executive" = "v2x_jucon",
+                               "VDem Clean elections index" = "v2xel_frefair",
+                               "VDem Legislative constraints on executive" = "v2xlg_legcon"),
              # for ggplot
              term = fct_rev(term),
              term = term %>%
