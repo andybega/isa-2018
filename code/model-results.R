@@ -17,15 +17,16 @@ data(gwstates)
 cnames <- gwstates %>% group_by(gwcode) %>% summarize(country = unique(country_name)[1])
 
 models <- tibble(file = dir("output/models", full.names = TRUE)) %>%
+  filter(!str_detect(basename(file), "xgboost")) %>%
   mutate(model_name = basename(file) %>% str_replace(".rds", "")) %>%
   mutate(model_obj = map(file, readRDS)) %>%
   # Mark what kind of controls are in the model
   mutate(controls = ifelse(str_detect(model_name, "(base2)|(controls)"), "Controls", "Base"),
          model_form = case_when(
-           str_detect(model_name, "glm_pois") ~ "glm_pois",
-           str_detect(model_name, "glm_nb") ~ "glm_nb",
-           str_detect(model_name, "glmer_pois") ~ "glmer_pois",
-           str_detect(model_name, "glmer_nb") ~ "glmer_nb"
+           str_detect(model_name, "glm_pois")   ~ "Poisson (GLM)",
+           str_detect(model_name, "glm_nb")     ~ "NegBin (GLM)",
+           str_detect(model_name, "glmer_pois") ~ "Poisson w RE (GLMER)",
+           str_detect(model_name, "glmer_nb")   ~ "NegBin (GLMER)"
          ))
 
 # Coefficient plot/table --------------------------------------------------
@@ -39,69 +40,8 @@ coefs <- models %>%
   # bind_rows(., tibble(y = "itt_alleg_vtcriminal", 
   #                     term = "Legal system: Civil\n(reference category)",
   #                     model_name = "mdl_base1")) %>%
-  mutate(y = str_replace(y, "itt_alleg_vt", "") %>% str_to_title(),
-         model_name = factor(model_name) %>%
-           fct_recode("M1: Intercepts only" = "mdl_base1",
-                      "M2: Base 2" = "mdl_base2",
-                      "M3: M1 + democracy" = "mdl_dem1",
-                      "M4: M2 + democracy" = "mdl_dem2",
-                      "M1 + LJI" = "mdl_lji1",
-                      "M3 + LJI" = "mdl_lji2",
-                      "M1 + Legal" = "mdl_legal1")) %>%
-  mutate(term = factor(term) %>%
-           fct_recode("Global intercept" = "(Intercept)",
-                      "Country intercepts, SD" = "sd_(Intercept).gwcode",
-                      "ln GDP ($ billions)" = "log(NY.GDP.MKTP.KD)",
-                      "ln GDP (normalized)" = "norm_ln_NY.GDP.MKTP.KD",
-                      "ln Population (millions)" = "log(pop)",
-                      "ln Population (normalized)" = "norm_ln_pop", 
-                      "Natural resource rents, %GDP, log(x + 1)" = "log1p(NY.GDP.TOTL.RT.ZS)",
-                      "Democracy, 0/1" = "dd_democracy",
-                      "Judicial independence" = "LJI",
-                      "Internal conflict" = "internal_confl",
-                      "INGO restricted access" = "itt_RstrctAccess",
-                      "Legal system: Common" = "mrs_legalsysCommon",
-                      "Legal system: Islamic" = "mrs_legalsysIslamic",
-                      "Legal system: Mixed" = "mrs_legalsysMixed",
-                      # CCP
-                      "CCP Torture" = "ccp_torture",
-                      "CCP Due process" = "ccp_dueproc",
-                      # EPR
-                      "EPR Excluded groups (count)",
-                      "EPR Excluded gruups (% of total pop)",
-                      # V-Dem
-                      "VDem Suffrage" = "V2asuffrage"),
-         # for ggplot
-         term = fct_rev(term),
-         term = term %>%
-           fct_relevel(c("Country intercepts, SD", "Global intercept", 
-                         "ln Population (millions)", "ln GDP ($ billions)", 
-                         "ln Population (normalized)", "ln GDP (normalized)",
-                         "INGO restricted access")) %>%
-           fct_relevel(c("Legal system: Mixed", "Legal system: Islamic",
-                         "Legal system: Common", "Legal system: Civil\n(reference category)",
-                         "Judicial independence"), after = Inf)
-         )
-
-h_width = .9
-p <- coefs %>%
-  filter(term!="Global intercept") %>%
-  filter(model_form=="glmer_pois") %>%
-  ggplot(., aes(y = estimate, x = term, color = controls, group = model_name)) +
-  geom_hline(yintercept = 0, linetype = 1, color = "gray70", size = .4) +
-  facet_wrap(~ y) +
-  coord_flip() +
-  geom_linerange(aes(ymin = estimate - 1.96*std.error, ymax = estimate + 1.96*std.error),
-                 position = position_dodge(width = h_width)) +
-  #geom_linerange(aes(ymin = estimate - 1.28*std.error, ymax = estimate + 1.28*std.error),
-  #               position = position_dodge(width = h_width), size = 1) +
-  geom_point(position = position_dodge(width = h_width)) +
-  theme_ipsum() +
-  labs(x = "", y = "") +
-  scale_color_discrete("Specification")
-p
-ggsave(p, file = "output/figures/model-coefs.png", height = 10, width = 10)
-
+  mutate(y = str_replace(y, "itt_alleg_vt", "") %>% str_to_title()) %>%
+  mutate(term = rename_terms(term))
 
 p <- coefs %>%
   filter(term!="Global intercept") %>%
@@ -110,15 +50,16 @@ p <- coefs %>%
   facet_wrap(~ y) +
   coord_flip() +
   geom_linerange(aes(ymin = estimate - 1.96*std.error, ymax = estimate + 1.96*std.error),
-                 position = position_dodge(width = h_width)) +
-  #geom_linerange(aes(ymin = estimate - 1.28*std.error, ymax = estimate + 1.28*std.error),
-  #               position = position_dodge(width = h_width), size = 1) +
-  geom_point(position = position_dodge(width = h_width), aes(shape = model_form)) +
+                 position = position_dodge(width = h_width), alpha = .6) +
+  geom_point(position = position_dodge(width = h_width), aes(shape = model_form),
+             alpha = .6) +
   theme_ipsum() +
   labs(x = "", y = "") +
-  scale_color_discrete("Specification")
+  scale_color_discrete("Specification:") +
+  scale_shape_discrete("Model type:") +
+  theme(legend.position = "top")
 p
-ggsave(p, file = "output/figures/model-coefs-all-model-forms.png", height = 10, width = 10)
+ggsave(p, file = "output/figures/model-coefs-all-model-forms.png", height = 8, width = 10)
 
 
 #   Tables

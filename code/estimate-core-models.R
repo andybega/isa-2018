@@ -340,17 +340,25 @@ oos_fit <- models %>%
   arrange(outcome, CRPS, variable, specification)
 write_csv(oos_fit, "output/model-fit-out-of-sample.csv")
 
+
+oos_fit <- read_csv("output/model-fit-out-of-sample.csv")
+
 xgboost_fit <- read_csv("output/xgboost-fit.csv") %>%
   mutate(outcome = str_to_title(outcome))
 
 oos_fit_all <- oos_fit %>%
-  mutate(model_name = "Poisson with RE") %>%
+  mutate(model_name = case_when(
+    variable=="none" ~ "Poisson, RE and controls only",
+    TRUE ~ "Poisson, RE, controls, and variable")) %>%
   bind_rows(xgboost_fit)
 
 oos_fit_all %>%
   gather(key, value, MAE:CRPS) %>%
   ggplot(., aes(x = value, y = outcome, color = model_name)) +
   facet_wrap(~ key, scales = "free_x") +
-  geom_jitter(height = .2, alpha = .5) +
-  theme_minimal()
-ggsave("output/figures/oos-fit-all.png", height = 4, width = 10)
+  geom_jitter(height = .2, alpha = .6) +
+  theme_minimal() +
+  scale_colour_brewer("Model:", type = "qual", palette = 6) +
+  labs(x = "Fit statistic value", y = "Outcome variable") +
+  theme(legend.position = "top")
+ggsave("output/figures/oos-fit-all.png", height = 3, width = 8)

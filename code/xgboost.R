@@ -69,14 +69,14 @@ trControl <- caret::trainControl(method = "cv", number = 11,
 # http://xgboost.readthedocs.io/en/latest/parameter.html
 generate_random_grid <- function(n) {
   data.frame(nrounds = sample(c(100, 150, 200, 500, 1000), n, replace = TRUE),
-             eta = runif(n, 0, .5),
+             eta = round(runif(n, 0, .5), 2),
              # tree complexity
-             max_depth = sample(2:15, n, replace = TRUE),
-             min_child_weight = runif(n, 0, 10),
-             gamma = runif(n, 0, 1.5),
+             max_depth = sample(2:10, n, replace = TRUE),
+             min_child_weight = rpois(n, 1),
+             gamma = round(rexp(n, rate = 5), 1),
              # randomization
-             colsample_bytree = runif(n, 0, 1),
-             subsample = runif(n, 0, 1)
+             colsample_bytree = round(rbeta(n, 3, 1), 2),
+             subsample = round(rbeta(n, 5, 2), 2)
              )
 }
 fixed_grid <- data.frame(
@@ -88,7 +88,7 @@ fixed_grid <- data.frame(
   colsample_by_tree = .6,
   subsample = .75
 )
-hp_grid <- generate_random_grid(100)
+hp_grid <- generate_random_grid(200)
 
 mdlX <- list(
   criminal = caret::train(x = train_x, y = train_y[["itt_alleg_vtcriminal"]],
@@ -113,7 +113,8 @@ resample_preds <- mdlX %>%
   enframe("outcome") %>%
   mutate(pred = map(value, "pred")) %>%
   select(-value) %>%
-  unnest(pred)
+  unnest(pred) %>%
+  mutate(pred = as.numeric(pred))
 # ID the hyperparameter group and compute fit metrics
 hp_performance <- resample_preds %>%
   mutate(hp_group = group_indices(., eta, max_depth, gamma, colsample_bytree, 
@@ -148,6 +149,7 @@ oos_preds <- mdlX %>%
     out <- out %>%
       rename(y = obs, yhat = pred, row_index = rowIndex) %>%
       select(y, yhat, row_index) %>%
+      mutate(yhat = as.numeric(yhat)) %>%
       as_tibble()
     out <- out %>% arrange(row_index) %>% select(-row_index)
     out

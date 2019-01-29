@@ -2,6 +2,7 @@
 
 \usepackage{dcolumn}
 \usepackage{rotating}
+\usepackage{amsmath}
 
 \begin{document}
 
@@ -22,13 +23,30 @@
 \includegraphics[width=.9\textwidth]{../output/figures/outcome-time-series.png}
 \end{figure}
 
+The core models are Poisson mixed effects regression models with state intercepts and three control variables: total population, total GDP, and the ITT restricted access for INGOs indicator. Population and GDP are both logged and then normalized to mean 0 and standard deviation 1. To this basic model we then add each of the variables of interest, one at a time. 
+
+$$
+\begin{aligned}
+\hat{Y_i} =& \alpha_0 + \alpha_c + \beta_1 \ln \textrm{Population} + \beta_2 \ln \textrm{GDP} + \beta_3 \textrm{ITT\_restricted\_access} \\
+& + \beta_4 x_j 
+\end{aligned}
+$$
+
+Here $i$ indexes the three outcomes, $c$ states, and $j$ each of the variables of interest. The control model excludes the last term. 
+
+We include country random effects because average levels of allegations are related to factors, including wealth/GDP and levels of democracy, that are also related to our variables of interest. Democracies for example seem to face, on average, higher levels of allegations than similar non-democracies, but to us this appears to be a matter of either higher expectations and/or higher transparency and press freedom, not a higher underlying level of ill-treatment and torture. 
+
+
 \begin{figure}
 \includegraphics[width=.9\textwidth]{../output/figures/model-coefs.png}
 \end{figure}
 
+
 \begin{figure}
 \includegraphics[width=.9\textwidth]{../output/figures/model-coefs-all-model-forms.png}
 \end{figure}
+
+Hyperparamaters for the \texttt{xgboost} model were picked from a random initial set of hyperparemeters to minimize out-of-sample mean absolute error, based on 11-fold cross-validation. 
 
 \begin{figure}
 \includegraphics[width=.9\textwidth]{../output/figures/xgboost-variable-importance-v1.png}
@@ -38,7 +56,16 @@
 \includegraphics[width=.9\textwidth]{../output/figures/xgboost-variable-importance-v2.png}
 \end{figure}
 
+Fit statistics:
+
+To compare the relative fit of the core models and xgboost, we used cross-validation to obtain out-of-sample predictions from each set of models, and then calculated three fit statistics:
+
+The mean absolute error (MAE) and root mean squared error (RMSE) are based on the absolute and squared deviations of a point prediction from the target value. Both are in the same units as the outcome variables, i.e. allegation counts, and for both lower values indicate better predictive performance. The RMSE penalizes large prediction errors more than the MAE does, i.e. with target value and predicted value pairs of ([10, 11], [100, 110]) where both predicted values are 10\% too high, the MAE gives penalties of 1 and 10, while the RMSE penalizes with 1 and 100. 
+
+The continuous rank probability score (CRPS) evaluates a probabilistic forecast density by comparing it's cumulative distribution function to that of the target value. For discrete forecasts it reduces to the mean absolute error, and it thus has a similar interpretation. Its units are the same as the outcome variable, i.e. allegation counts, and lower values indicate better fit. For the probabilistic predictions that we have here, the CRPS, unlike MAE and RMSE, scores the complete forecast density, and not just the quality of the point forecast. 
+
 \begin{figure}
+\caption{Model fit comparison.}
 \includegraphics[width=.9\textwidth]{../output/figures/oos-fit-all.png}
 \end{figure}
 
