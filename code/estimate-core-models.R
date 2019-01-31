@@ -6,6 +6,7 @@ library("lme4")
 library("broom")
 library("ggstance")
 library("stargazer")
+library("scoringRules")
 
 source("code/functions.R")
 
@@ -13,13 +14,13 @@ source("code/functions.R")
 # Setup list of variables of interest
 voi <- c(
   c("ccp_torture", "ccp_prerel", "ccp_habcorp", "ccp_dueproc", "ccp_speedtri"),
-  c("v2x_elecoff", "v2xel_frefair", "v2asuffrage", "v2x_jucon", 
+  c("v2x_jucon", 
     "v2xlg_legcon", "v2clacjust", "v2clsocgrp", "v2pepwrses", "v2pepwrsoc"),
-  c("epr_excluded_groups_count", "epr_excluded_group_pop")
+  c("epr_excluded_group_pop")
 )
 
 base_spec    <- "~ (1|gwcode) + 1"
-control_spec <- "~ (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess"
+control_spec <- "~ (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess"
 
 # Which models to run?
 mt <- c("glmer_pois", "glm_pois")
@@ -42,11 +43,11 @@ none <- list(
   #                        data = cy, family = poisson(link = "log"))
   # ),
   controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Criminal     = glmer(itt_alleg_vtcriminal     ~ (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Dissident    = glmer(itt_alleg_vtdissident    ~ (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Marginalized = glmer(itt_alleg_vtmarginalized ~ (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log"))
   )
 )
@@ -54,11 +55,11 @@ none <- list(
 # ccp_torture
 ccp_torture <- list(
   controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ ccp_torture + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Criminal     = glmer(itt_alleg_vtcriminal     ~ ccp_torture + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ ccp_torture + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Dissident    = glmer(itt_alleg_vtdissident    ~ ccp_torture + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ ccp_torture + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Marginalized = glmer(itt_alleg_vtmarginalized ~ ccp_torture + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log"))
   )
 )
@@ -66,11 +67,11 @@ ccp_torture <- list(
 # ccp_prerel
 ccp_prerel <- list(
   controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ ccp_prerel + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Criminal     = glmer(itt_alleg_vtcriminal     ~ ccp_prerel + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ ccp_prerel + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Dissident    = glmer(itt_alleg_vtdissident    ~ ccp_prerel + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ ccp_prerel + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Marginalized = glmer(itt_alleg_vtmarginalized ~ ccp_prerel + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log"))
   )
 )
@@ -78,11 +79,11 @@ ccp_prerel <- list(
 # ccp_habcorp
 ccp_habcorp <- list(
   controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ ccp_habcorp + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Criminal     = glmer(itt_alleg_vtcriminal     ~ ccp_habcorp + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ ccp_habcorp + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Dissident    = glmer(itt_alleg_vtdissident    ~ ccp_habcorp + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ ccp_habcorp + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Marginalized = glmer(itt_alleg_vtmarginalized ~ ccp_habcorp + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log"))
   )
 )
@@ -90,11 +91,11 @@ ccp_habcorp <- list(
 # ccp_dueproc
 ccp_dueproc <- list(
   controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ ccp_dueproc + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Criminal     = glmer(itt_alleg_vtcriminal     ~ ccp_dueproc + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ ccp_dueproc + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Dissident    = glmer(itt_alleg_vtdissident    ~ ccp_dueproc + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ ccp_dueproc + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Marginalized = glmer(itt_alleg_vtmarginalized ~ ccp_dueproc + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log"))
   )
 )
@@ -102,47 +103,11 @@ ccp_dueproc <- list(
 # ccp_speedtri
 ccp_speedtri <- list(
   controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ ccp_speedtri + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Criminal     = glmer(itt_alleg_vtcriminal     ~ ccp_speedtri + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ ccp_speedtri + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Dissident    = glmer(itt_alleg_vtdissident    ~ ccp_speedtri + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ ccp_speedtri + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
-                         data = cy, family = poisson(link = "log"))
-  )
-)
-
-# v2x_elecoff 
-v2x_elecoff <- list(
-  controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2x_elecoff + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
-                         data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ v2x_elecoff + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
-                         data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2x_elecoff + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
-                         data = cy, family = poisson(link = "log"))
-  )
-)
-
-# v2xel_frefair 
-v2xel_frefair <- list(
-  controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2xel_frefair + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
-                         data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ v2xel_frefair + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
-                         data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2xel_frefair + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
-                         data = cy, family = poisson(link = "log"))
-  )
-)
-
-# v2asuffrage 
-v2asuffrage  <- list(
-  controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2asuffrage  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
-                         data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ v2asuffrage  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
-                         data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2asuffrage  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Marginalized = glmer(itt_alleg_vtmarginalized ~ ccp_speedtri + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log"))
   )
 )
@@ -150,11 +115,11 @@ v2asuffrage  <- list(
 # v2x_jucon
 v2x_jucon  <- list(
   controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2x_jucon  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2x_jucon  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ v2x_jucon  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Dissident    = glmer(itt_alleg_vtdissident    ~ v2x_jucon  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2x_jucon  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2x_jucon  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log"))
   )
 )
@@ -162,11 +127,11 @@ v2x_jucon  <- list(
 # v2xlg_legcon
 v2xlg_legcon  <- list(
   controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2xlg_legcon  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2xlg_legcon  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ v2xlg_legcon  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Dissident    = glmer(itt_alleg_vtdissident    ~ v2xlg_legcon  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2xlg_legcon  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2xlg_legcon  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log"))
   )
 )
@@ -174,11 +139,11 @@ v2xlg_legcon  <- list(
 # v2clacjust
 v2clacjust  <- list(
   controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2clacjust  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2clacjust  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ v2clacjust  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Dissident    = glmer(itt_alleg_vtdissident    ~ v2clacjust  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2clacjust  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2clacjust  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log"))
   )
 )
@@ -186,11 +151,11 @@ v2clacjust  <- list(
 # v2clsocgrp
 v2clsocgrp  <- list(
   controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2clsocgrp  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2clsocgrp  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ v2clsocgrp  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Dissident    = glmer(itt_alleg_vtdissident    ~ v2clsocgrp  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2clsocgrp  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2clsocgrp  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log"))
   )
 )
@@ -198,11 +163,11 @@ v2clsocgrp  <- list(
 # v2pepwrses
 v2pepwrses  <- list(
   controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2pepwrses  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2pepwrses  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ v2pepwrses  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Dissident    = glmer(itt_alleg_vtdissident    ~ v2pepwrses  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2pepwrses  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2pepwrses  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log"))
   )
 )
@@ -210,23 +175,11 @@ v2pepwrses  <- list(
 # v2pepwrsoc
 v2pepwrsoc  <- list(
   controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2pepwrsoc  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Criminal     = glmer(itt_alleg_vtcriminal     ~ v2pepwrsoc  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ v2pepwrsoc  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Dissident    = glmer(itt_alleg_vtdissident    ~ v2pepwrsoc  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2pepwrsoc  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
-                         data = cy, family = poisson(link = "log"))
-  )
-)
-
-# epr_excluded_groups_count
-epr_excluded_groups_count  <- list(
-  controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ epr_excluded_groups_count + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
-                         data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ epr_excluded_groups_count + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
-                         data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ epr_excluded_groups_count + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Marginalized = glmer(itt_alleg_vtmarginalized ~ v2pepwrsoc  + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log"))
   )
 )
@@ -234,11 +187,11 @@ epr_excluded_groups_count  <- list(
 # epr_excluded_group_pop
 epr_excluded_group_pop  <- list(
   controls = list(
-    Criminal     = glmer(itt_alleg_vtcriminal     ~ epr_excluded_group_pop + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Criminal     = glmer(itt_alleg_vtcriminal     ~ epr_excluded_group_pop + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Dissident    = glmer(itt_alleg_vtdissident    ~ epr_excluded_group_pop + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Dissident    = glmer(itt_alleg_vtdissident    ~ epr_excluded_group_pop + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log")),
-    Marginalized = glmer(itt_alleg_vtmarginalized ~ epr_excluded_group_pop + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess,
+    Marginalized = glmer(itt_alleg_vtmarginalized ~ epr_excluded_group_pop + (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + dd_democracy + itt_RstrctAccess,
                          data = cy, family = poisson(link = "log"))
   )
 )
@@ -250,16 +203,12 @@ models <- list(none         = none,
                ccp_habcorp  = ccp_habcorp,
                ccp_dueproc  = ccp_dueproc,
                ccp_speedtri = ccp_speedtri,
-               v2x_elecoff  = v2x_elecoff,
-               v2xel_frefair = v2xel_frefair,
-               v2asuffrage = v2asuffrage,
                v2x_jucon = v2x_jucon,
                v2xlg_legcon = v2xlg_legcon,
                v2clacjust = v2clacjust,
                v2clsocgrp = v2clsocgrp,
                v2pepwrses = v2pepwrses,
                v2pepwrsoc = v2pepwrsoc,
-               epr_excluded_groups_count = epr_excluded_groups_count,
                epr_excluded_group_pop = epr_excluded_group_pop)
 
 models <- models %>%
@@ -274,6 +223,13 @@ models <- models %>%
   mutate(oos_preds = cv_predict(models$model_obj, data = cy, folds = 11))
 
 write_rds(models, path = "output/core-models.rds")
+
+
+
+# Check models with convergence warnings ----------------------------------
+
+
+# to be done, right now no issues
 
 
 # Coefficient plot --------------------------------------------------------
@@ -311,7 +267,7 @@ for (yy in unique(models$outcome)) {
   for (g in 1:2) {
     fh <- sprintf("output/tables/coefficients-%s-group%s.tex", tolower(yy), g)
     filter(models, outcome==yy) %>%
-      mutate(group = ifelse(row_number() < 10, 1, 2)) %>%
+      mutate(group = ifelse(row_number() < 7, 1, 2)) %>%
       filter(group==g) %>%
       pull(model_obj) %>%
       stargazer(float.env = "sidewaystable",
