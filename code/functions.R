@@ -286,9 +286,9 @@ rename_terms <- function(term) {
                fct_relevel(c("Country intercepts, SD", "Global intercept", 
                              "ln Population (millions)", "ln GDP ($ billions)", 
                              "ln Population (normalized)", "ln GDP (normalized)",
-                             "Democracy, 0/1",
                              "INGO restricted access")) %>%
-               fct_relevel(c("Legal system: Mixed", "Legal system: Islamic",
+               fct_relevel(c("Democracy, 0/1",
+                             "Legal system: Mixed", "Legal system: Islamic",
                              "Legal system: Common", "Legal system: Civil\n(reference category)",
                              "Judicial independence"), after = Inf))
   })

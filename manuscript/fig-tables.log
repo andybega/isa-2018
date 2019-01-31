@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.12.4)  29 JAN 2019 12:01
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.12.4)  31 JAN 2019 12:07
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -300,25 +300,13 @@ Package pdftex.def Info: ../output/figures/oos-fit-all.png  used on input line
 69.
 (pdftex.def)             Requested size: 350.99762pt x 131.6132pt.
  [4 <../output/figures/xgboost-variable-importance-v1.png>]
-(../output/tables/coefficients-criminal-group1.tex
-Overfull \hbox (24.84659pt too wide) in paragraph at lines 9--50
- [][] 
- []
-
-) (../output/tables/coefficients-criminal-group2.tex)
-(../output/tables/coefficients-dissident-group1.tex
-Overfull \hbox (24.84659pt too wide) in paragraph at lines 9--50
- [][] 
- []
-
-) (../output/tables/coefficients-dissident-group2.tex)
-(../output/tables/coefficients-marginalized-group1.tex
-Overfull \hbox (24.84659pt too wide) in paragraph at lines 9--50
- [][] 
- []
-
-) (../output/tables/coefficients-marginalized-group2.tex) [5 <../output/figures
-/xgboost-variable-importance-v2.png> <../output/figures/oos-fit-all.png>]
+(../output/tables/coefficients-criminal-group1.tex)
+(../output/tables/coefficients-criminal-group2.tex)
+(../output/tables/coefficients-dissident-group1.tex)
+(../output/tables/coefficients-dissident-group2.tex)
+(../output/tables/coefficients-marginalized-group1.tex)
+(../output/tables/coefficients-marginalized-group2.tex) [5 <../output/figures/x
+gboost-variable-importance-v2.png> <../output/figures/oos-fit-all.png>]
 [6] [7] [8] [9] [10] [11] (./fig-tables.aux)
 
 LaTeX Warning: There were multiply-defined labels.
@@ -327,7 +315,7 @@ LaTeX Warning: There were multiply-defined labels.
 Here is how much of TeX's memory you used:
  2291 strings out of 492639
  33021 string characters out of 6129302
- 173244 words of memory out of 5000000
+ 157244 words of memory out of 5000000
  6131 multiletter control sequences out of 15000+600000
  7795 words of font info for 29 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -342,7 +330,7 @@ cal/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local
 exlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/tex
 live/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti7.pfb></usr/local/texli
 ve/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
-Output written on fig-tables.pdf (11 pages, 2690704 bytes).
+Output written on fig-tables.pdf (11 pages, 2677838 bytes).
 PDF statistics:
  99 PDF objects out of 1000 (max. 8388607)
  57 compressed objects within 1 object stream
