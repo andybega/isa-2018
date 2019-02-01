@@ -16,8 +16,7 @@ voi <- c(
   c("ccp_torture", "ccp_prerel", "ccp_habcorp", "ccp_dueproc", "ccp_speedtri"),
   c("v2x_jucon", "v2xlg_legcon", "v2clacjust", "v2clsocgrp", "v2pepwrses", "v2pepwrsoc"),
   c("epr_excluded_group_pop",
-    "dd_democracy")
-)
+    "dd_democracy"))
 
 base_spec    <- "~ (1|gwcode) + 1"
 control_spec <- "~ (1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess"
