@@ -33,16 +33,14 @@ cnames <- gwstates %>% group_by(gwcode) %>% summarize(country = unique(country_n
 
 voi <- c(
   c("ccp_torture", "ccp_prerel", "ccp_habcorp", "ccp_dueproc", "ccp_speedtri"),
-  c("v2x_elecoff", "v2xel_frefair", "v2asuffrage", "v2x_jucon", 
-    "v2xlg_legcon", "v2clacjust", "v2clsocgrp", "v2pepwrses", "v2pepwrsoc"),
-  c("epr_excluded_groups_count", "epr_excluded_group_pop")
-)
+  c("v2x_jucon", "v2xlg_legcon", "v2clacjust", "v2clsocgrp", "v2pepwrses", "v2pepwrsoc"),
+  c("epr_excluded_group_pop",
+    "dd_democracy"))
 
 num_data <- cy %>%
   select(gwcode, year, one_of(voi), starts_with("norm_"), starts_with("itt_alleg"), 
          "itt_RstrctAccess") %>%
-  mutate(gtd_events = scale(log1p(gtd_events))[, 1],
-         gtd_killed = scale(log1p(gtd_killed))[, 1]) %>%
+  mutate(epr_excluded_group_pop = scale(epr_excluded_group_pop)[, 1]) %>%
   mutate(gwcode_fct = factor(gwcode))
 # Don't want to center/scale binary/quasi-categorical vars, so ID those
 binary_vars <- num_data %>%
