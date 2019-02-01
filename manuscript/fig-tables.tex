@@ -48,6 +48,10 @@ We include country random effects because average levels of allegations are rela
 
 Hyperparamaters for the \texttt{xgboost} model were picked from a random initial set of hyperparemeters to minimize out-of-sample mean absolute error, based on 11-fold cross-validation. 
 
+\subsection{Variable importance}
+
+The xgboost tree model includes a method for calculating variable importance that is based on calculating the total increase in accuracy produced by a given variable at each tree node in which it is included \citep{chen2016xgboost}. Alternative methods exist, e.g. by measuring accuracy losses when randomly permuting a variable. The resulting measure is relative, i.e. how much of a role a variable plays in explaining the overall predictive accuracy of a model, compared to all other variables that were or could have been included. Here it is rescaled so that the most important variable has an importance value of 100, and those which played no role a value of 0. 
+
 \begin{figure}
 \includegraphics[width=.9\textwidth]{../output/figures/xgboost-variable-importance-v1.png}
 \end{figure}
