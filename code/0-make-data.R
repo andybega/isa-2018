@@ -18,6 +18,27 @@ itt1 <- itt_api("allegation count", "data-modules/itt")  %>%
 itt2 <- itt_api("by victim", "data-modules/itt")
 cy <- left_join(itt1, itt2, by = c("gwcode", "year")) 
 
+# which cases drop out from missing ITT data?
+# do this now, because below i will scale some variables and with these dropped
+# cases the variables will not be mean 0 var 1 anymore (small countries drop out)
+data(gwstates)
+cnames <- gwstates %>% 
+  group_by(gwcode) %>% 
+  summarize(country = tail(country_name, 1)) %>%
+  select(gwcode, country)
+cy %>%
+  filter(is.na(itt_LoTUnknown)) %>%
+  group_by(gwcode) %>%
+  summarize(years = paste0(min(year), " to ", max(year))) %>%
+  left_join(., cnames, by = "gwcode") %>%
+  select(gwcode, country, years) %>%
+  write_csv(., path = "output/missing-from-ITT.csv")
+
+cy <- cy %>%
+  mutate(gwcode = as.integer(gwcode),
+         year = as.integer(year)) %>%
+  filter(!is.na(itt_LoTUnknown))
+
 # GDP/pop (mostly from WDI)
 cy <- dir("data-modules/gdppop/output", full.names = TRUE) %>%
   map(., read_csv, col_types = cols()) %>%
@@ -33,7 +54,8 @@ cy <- cy %>%
          norm_ln_NY.GDP.MKTP.KD = scale(ln_NY.GDP.MKTP.KD)[, 1]) %>%
   # Log, then normalize pop
   mutate(ln_pop = log(pop),
-         norm_ln_pop = scale(ln_pop)[, 1])
+         norm_ln_pop = scale(ln_pop)[, 1],
+         ln_pop = NULL)
 
 # V-Dem
 # devtools::install_github("xmarquez/vdem")
@@ -70,6 +92,11 @@ cy <- epr_api(what = "yearly", "data-modules/epr") %>%
   select(-date) %>%
   left_join(cy, ., by = c("gwcode", "year"))
 
+# log and normalize EPR
+cy <- cy %>%
+  mutate(norm_ln1p_epr_excluded_groups_count = scale(log1p(epr_excluded_groups_count))[, 1],
+         norm_sqrt_epr_excluded_group_pop = scale(sqrt(epr_excluded_group_pop))[, 1])
+
 source("data-modules/ucdp-acd/ucdp-acd.R")
 cy <- ucdp_acd_api(what = "yearly", "data-modules/ucdp-acd") %>%
   left_join(cy, ., by = c("gwcode", "year"))
@@ -84,25 +111,6 @@ cy <- read_rds("data-modules/ccp/output/ccp.rds") %>%
   rename_at(vars(-gwcode, -year), ~ paste0("ccp_", .)) %>%
   left_join(cy, ., by = c("gwcode", "year"))
 
-
-# which cases drop out from missing ITT data?
-data(gwstates)
-cnames <- gwstates %>% 
-  group_by(gwcode) %>% 
-  summarize(country = tail(country_name, 1)) %>%
-  select(gwcode, country)
-cy %>%
-  filter(is.na(itt_LoTUnknown)) %>%
-  group_by(gwcode) %>%
-  summarize(years = paste0(min(year), " to ", max(year))) %>%
-  left_join(., cnames, by = "gwcode") %>%
-  select(gwcode, country, years) %>%
-  write_csv(., path = "output/missing-from-ITT.csv")
-
-cy <- cy %>%
-  mutate(gwcode = as.integer(gwcode),
-         year = as.integer(year)) %>%
-  filter(!is.na(itt_LoTUnknown))
 
 # Construct DV versions for each victim type
 yy_levels <- c("Routine", "Widespread", "Systematic")
