@@ -27,12 +27,12 @@ The core models are Poisson mixed effects regression models with state intercept
 
 $$
 \begin{aligned}
-\hat{Y_i} =& \alpha_0 + \alpha_c + \beta_1 \ln \textrm{Population} + \beta_2 \ln \textrm{GDP} + \beta_3 \textrm{ITT\_restricted\_access} \\
-& + \beta_4 x_j 
+\ln(\hat{Y_i}) =& \alpha_0 + \alpha_c + \beta_1 \ln \textrm{Population} + \beta_2 \ln \textrm{GDP} + \beta_3 \textrm{Internal conflict} \\
+& + \beta_4 \textrm{ITT\_restricted\_access} + \beta_4 x_j 
 \end{aligned}
 $$
 
-Here $i$ indexes the three outcomes, $c$ states, and $j$ each of the variables of interest. The control model excludes the last term. 
+Here $i$ indexes the three outcomes, $c$ states, and $j$ each of the variables of interest. The control model excludes the last term. Population and GDP are logged and then normalized to mean 0 and variance 1. The EPR variables for excluded groups count are transformed with $\ln(x + 1)$ and square root, respectively, before being normalized. All remaining variables are binary indicators. The reason for the transformations and normalization is to aid with model convergence, especially since many of the binary variables do not change much within countries, which makes fitting country random effects difficult. 
 
 We include country random effects because average levels of allegations are related to factors, including wealth/GDP and levels of democracy, that are also related to our variables of interest. Democracies for example seem to face, on average, higher levels of allegations than similar non-democracies, but to us this appears to be a matter of either higher expectations and/or higher transparency and press freedom, not a higher underlying level of ill-treatment and torture. 
 
@@ -50,7 +50,7 @@ Hyperparamaters for the \texttt{xgboost} model were picked from a random initial
 
 \subsection{Variable importance}
 
-The xgboost tree model includes a method for calculating variable importance that is based on calculating the total increase in accuracy produced by a given variable at each tree node in which it is included \citep{chen2016xgboost}. Alternative methods exist, e.g. by measuring accuracy losses when randomly permuting a variable. The resulting measure is relative, i.e. how much of a role a variable plays in explaining the overall predictive accuracy of a model, compared to all other variables that were or could have been included. Here it is rescaled so that the most important variable has an importance value of 100, and those which played no role a value of 0. 
+The xgboost tree model includes a method for calculating variable importance that is based on calculating the total increase in accuracy produced by a given variable at each tree node in which it is included \\citep{chen2016xgboost}. Alternative methods exist, e.g. by measuring accuracy losses when randomly permuting a variable. The resulting measure is relative, i.e. how much of a role a variable plays in explaining the overall predictive accuracy of a model, compared to all other variables that were or could have been included. Here it is rescaled so that the most important variable has an importance value of 100, and those which played no role a value of 0. 
 
 \begin{figure}
 \includegraphics[width=.9\textwidth]{../output/figures/xgboost-variable-importance-v1.png}

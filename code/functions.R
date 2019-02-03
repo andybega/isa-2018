@@ -1,3 +1,13 @@
+
+
+# Setup list of variables of interest
+voi <- c(
+  c("ccp_torture", "ccp_prerel", "ccp_habcorp", "ccp_dueproc", "ccp_speedtri"),
+  c("v2x_jucon", "v2xlg_legcon", "v2clacjust", "v2clsocgrp", "v2pepwrses", "v2pepwrsoc"),
+  c("epr_excluded_group_pop", "epr_excluded_group_count"), 
+    "dd_democracy")
+
+
 # Helper functions --------------------------------------------------------
 
 get_preds <- function(x) {
@@ -256,7 +266,7 @@ rename_terms <- function(term) {
                                "Natural resource rents, %GDP, log(x + 1)" = "log1p(NY.GDP.TOTL.RT.ZS)",
                                "Democracy, 0/1" = "dd_democracy",
                                "Judicial independence" = "LJI",
-                               "Internal conflict" = "internal_confl",
+                               "ACD Internal conflict" = "internal_confl",
                                "INGO restricted access" = "itt_RstrctAccess",
                                "Legal system: Common" = "mrs_legalsysCommon",
                                "Legal system: Islamic" = "mrs_legalsysIslamic",
@@ -269,7 +279,9 @@ rename_terms <- function(term) {
                                "CCP Speedy trial" = "ccp_speedtri",
                                # EPR
                                "EPR Excluded groups (count)" = "epr_excluded_groups_count",
+                               "EPR Excluded groups (count, log(x + 1), normalized)" = "norm_ln1p_epr_excluded_groups_count",
                                "EPR Excluded groups (% of total pop)" = "epr_excluded_group_pop",
+                               "EPR Excluded groups (% of total pop, sqrt, normalized)" = "norm_sqrt_epr_excluded_group_pop",
                                # V-Dem
                                "VDem Suffrage" = "v2asuffrage",
                                "VDem Civil liberty social class equality" = "v2clacjust",
@@ -286,7 +298,7 @@ rename_terms <- function(term) {
                fct_relevel(c("Country intercepts, SD", "Global intercept", 
                              "ln Population (millions)", "ln GDP ($ billions)", 
                              "ln Population (normalized)", "ln GDP (normalized)",
-                             "INGO restricted access")) %>%
+                             "INGO restricted access", "ACD Internal conflict")) %>%
                fct_relevel(c("Democracy, 0/1",
                              "Legal system: Mixed", "Legal system: Islamic",
                              "Legal system: Common", "Legal system: Civil\n(reference category)",
@@ -294,4 +306,38 @@ rename_terms <- function(term) {
   })
   
   df$term
+}
+
+
+fix_table_varnames <- function(str) {
+  dict <- list(
+    "Criminal" = "itt\\\\\\_alleg\\\\\\_vtcriminal",
+    "Dissident" = "itt\\\\\\_alleg\\\\\\_vtdissident",
+    "Marginalized" = "itt\\\\\\_alleg\\\\\\_vtmarginalized",
+    "Global intercept" = "Constant",
+    "CCP Torture" = "ccp\\\\\\_torture",
+    "CCP Due process" = "ccp\\\\\\_dueproc",
+    "CCP Habeas corpus" = "ccp\\\\\\_habcorp",
+    "CCP Pretrial release" = "ccp\\\\\\_prerel",
+    "CCP Speedy trial" = "ccp\\\\\\_speedtri",
+    "ln GDP (normalized)" = "norm\\\\_ln\\\\_NY.GDP.MKTP.KD",
+    "ln Population (normalized)" = "norm\\\\\\_ln\\\\\\_pop",
+    "ACD Internal conflict" = "internal\\\\\\_confl",
+    "INGO restricted access" = "itt\\\\\\_RstrctAccess",
+    "Democracy, 0/1" = "dd_democracy",
+    "VDem Civil liberty social class equality" = "v2clacjust",
+    "VDem Civil liberty social group equality" = "v2clsocgrp",
+    "VDem Power by socioeconomic position" = "v2pepwrses",
+    "VDem Power by social group" = "v2pepwrsoc",
+    "VDem Elected officials index" = "v2x\\\\\\_elecoff",
+    "VDem Judicial constraints on executive" = "v2x\\\\\\_jucon",
+    "VDem Clean elections index" = "v2xel\\\\\\_frefair",
+    "VDem Legislative constraints on executive" = "v2xlg\\\\\\_legcon",
+    "EPR Excluded groups (count, log(x + 1), normalized)" = "norm\\\\\\_ln1p\\\\\\_epr\\\\\\_excluded\\\\\\_groups\\\\\\_count",
+    "EPR Excluded groups (% of total pop, sqrt, normalized)" = "norm\\\\\\_sqrt\\\\\\_epr\\\\\\_excluded\\\\\\_group_pop"
+  )
+  for (i in seq_len(length(dict))) {
+    str <- str_replace(str, dict[[i]], names(dict)[i])
+  }
+  str
 }
