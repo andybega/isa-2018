@@ -205,6 +205,28 @@ p
 ggsave(p, file = "output/figures/xgboost-variable-importance-v1.png", height = 6, width = 10)
 
 p <- predictor_importance %>%
+  mutate(predictor = rename_terms(predictor)) %>%
+  group_by(predictor) %>%
+  mutate(avg_imp = mean(importance)) %>%
+  arrange(avg_imp) %>%
+  ungroup() %>%
+  dplyr::slice((501-3*30+1):501) %>%
+  mutate(predictor = factor(predictor) %>% fct_inorder()) %>%
+  ggplot(., aes(x = importance, y = predictor)) +
+  geom_linerangeh(aes(xmin = 0, xmax = importance, y = predictor, group = outcome), 
+                  linetype = 1, color = "gray90", position = position_dodgev(height = .5)) +
+  geom_point(aes(colour = outcome), position = position_dodgev(height = .5)) + 
+  theme_ipsum() +
+  theme(panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        legend.position = c(.8, .2)) +
+  labs(x = "XGBoost variable importance, 0-100", y = "") +
+  scale_colour_discrete("Outcome")
+p
+ggsave(p, file = "output/figures/xgboost-variable-importance-v1-with-gwcode.png", height = 6, width = 10)
+
+
+p <- predictor_importance %>%
   dplyr::filter(!str_detect(predictor, "gwcode_fct")) %>%
   mutate(predictor = rename_terms(predictor),
          outcome = str_to_title(outcome)) %>%
