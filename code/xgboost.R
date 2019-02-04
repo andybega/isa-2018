@@ -21,7 +21,7 @@ flog.info("xgboost.R script start")
 
 set.seed(1234)
 
-registerDoMC(cores = 3) 
+registerDoMC(cores = 4) 
 
 source("code/functions.R")
 
@@ -33,12 +33,6 @@ cnames <- gwstates %>% group_by(gwcode) %>% summarize(country = unique(country_n
 
 # Xgboost general count model ---------------------------------------------
 
-
-voi <- c(
-  c("ccp_torture", "ccp_prerel", "ccp_habcorp", "ccp_dueproc", "ccp_speedtri"),
-  c("v2x_jucon", "v2xlg_legcon", "v2clacjust", "v2clsocgrp", "v2pepwrses", "v2pepwrsoc"),
-  c("epr_excluded_group_pop",
-    "dd_democracy"))
 
 num_data <- cy %>%
   select(gwcode, year, one_of(voi), starts_with("norm_"), starts_with("itt_alleg"), 

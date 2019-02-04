@@ -1,3 +1,4 @@
+
 library("tidyverse")
 library("states")
 library("hrbrthemes")
@@ -294,7 +295,9 @@ for (yy in unique(models$outcome)) {
 
 
 # Out-of-sample predictions -----------------------------------------------
-
+#
+#   This part depends on correct/updated xgboost.R output
+#
 
 oos_fit <- models %>%
   select(-model_obj) %>%
