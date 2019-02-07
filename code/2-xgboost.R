@@ -36,7 +36,7 @@ cnames <- gwstates %>% group_by(gwcode) %>% summarize(country = unique(country_n
 
 num_data <- cy %>%
   select(gwcode, year, one_of(voi), starts_with("norm_"), starts_with("itt_alleg"), 
-         "itt_RstrctAccess") %>%
+         "itt_RstrctAccess", "internal_confl") %>%
   mutate(gwcode_fct = factor(gwcode))
 # Don't want to center/scale binary/quasi-categorical vars, so ID those
 binary_vars <- num_data %>%
@@ -417,3 +417,4 @@ p
 }
 
 flog.info("xgboost.R script end")
+
