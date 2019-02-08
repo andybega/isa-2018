@@ -2,13 +2,13 @@
 # Rscript code/xgboost.R
 
 suppressMessages({
+  library("caret")
   library("tidyverse")
   library("states")
   library("hrbrthemes")
   library("broom")
   library("ggstance")
   library("xgboost")
-  library("caret")
   library("recipes")
   library("pdp")
   library("lme4")
@@ -126,7 +126,7 @@ p <- hp_performance %>%
   ggplot(., aes(x = value, y = MAE)) +
   facet_grid(outcome ~ hp, scales = "free_x") +
   geom_point() +
-  geom_smooth() +
+  geom_smooth(method = "loess", formula = "y ~ x") +
   theme_minimal() 
 p
 ggsave(p, file = "output/figures/xgboost-hp-tuning.png", height = 8, width = 12)

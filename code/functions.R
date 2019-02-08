@@ -4,7 +4,7 @@
 voi <- c(
   c("ccp_torture", "ccp_prerel", "ccp_habcorp", "ccp_dueproc", "ccp_speedtri"),
   c("v2x_jucon", "v2xlg_legcon", "v2clacjust", "v2clsocgrp", "v2pepwrses", "v2pepwrsoc"),
-  c("norm_sqrt_epr_excluded_group_pop", "norm_ln1p_epr_excluded_group_count"), 
+  c("norm_sqrt_epr_excluded_group_pop", "norm_ln1p_epr_excluded_groups_count"), 
     "dd_democracy")
 
 
