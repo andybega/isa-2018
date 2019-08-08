@@ -8,6 +8,7 @@ library("lme4")
 library("broom")
 library("ggstance")
 library("stargazer")
+library("scoringRules")
 
 source("R/functions.R")
 
