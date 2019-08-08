@@ -9,9 +9,9 @@ library("scoringRules")
 library("ggrepel")
 library("hrbrthemes")
 
-source("code/functions.R")
+source("R/functions.R")
 
-oos_fit     <- read_csv("output/model-fit-out-of-sample.csv")
+oos_fit     <- read_csv("output/core-models-fit-out-of-sample.csv")
 xgboost_fit <- read_csv("output/xgboost-fit.csv") %>%
   mutate(outcome = str_to_title(outcome))
 

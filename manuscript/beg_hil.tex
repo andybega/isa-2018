@@ -184,6 +184,16 @@ Though this set of variables does relatively well at predicting allegations for 
 
 %The last model is a commonly used machine learning predictive model, XGBoost, which provides another benchmark of the levels of prediction accuracy one should expect to be feasible. Hyperparameters for this kind of model are usually tuned via cross-validation. In order to be able to compare the cross-validation predictions to those from the count models, we did not do this and instead left hyperparameters at their default values.
 
+Figure \ref{oos-fit} summarizes the out-of-sample fit for the XGBoost and regression models. These were obtained using 11-fold cross-validation, and the figure shows continuous rank probability scores (CRPS), mean absolute error (MAE), and root mean squared error (RMSE); for all lower means better fit. The best-performing regression model for each combination of outcome and fit statistic is labeled in the plot. The variables of interest usually increase fit compared to a random effects-only control model. It is also notable that the XGBoost model outperforms the regression models by a large margin, except in one case where it only slightly outperforms. 
+
+\begin{figure}
+\begin{center}
+\caption{Out-of-sample fit.}
+\label{oos-fit}
+\includegraphics[width=.99\textwidth]{../output/figures/oos-fit-all.png}
+\end{center}
+\end{figure}
+
 \section*{Conclusion}
 
 Based on our analysis, we draw three broad conclusions about the differences between repressive and oppressive violence. First, the political institutions that receive the most attention in the literature, electoral competition and executive constraints, appear to be better at protecting dissidents from physical abuse than other kinds of victims. That is, they are more reliably associated with repressive violence than oppressive violence. On the one hand, some political institutions are associated with oppressive violence in our analysis. Competitive elections are related to allegations involving all the victim types we examined, including those that we take as indicators of oppression. Judicial constraints are related to allegations of torturing marginalized individuals. Legislative and judicial constraints also predict allegations of oppressive violence well relative to most of the factors expected to influence oppression. On the other hand, these institutions, in particular competition and legislative constraints, are more strongly associated with repressive violence than oppressive violence. They are also much better at predicting repressive violence than oppressive violence. This supports the claim that explanations for state violence that focus on political institutions are better suited to explaining repressive violence. 
