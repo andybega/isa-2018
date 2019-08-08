@@ -1,4 +1,5 @@
 
+
 library("tidyverse")
 library("states")
 library("hrbrthemes")
@@ -8,8 +9,9 @@ library("broom")
 library("ggstance")
 library("stargazer")
 
+source("R/functions.R")
 
-source("code/functions.R")
+set.seed(2341)
 
 # this is not used, for reference only
 base_spec    <- "~ (1|gwcode) + 1"
