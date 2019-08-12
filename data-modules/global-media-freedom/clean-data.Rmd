@@ -1,0 +1,113 @@
+---
+title: "Check and clean Global Media Freedom data"
+output: github_document
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library("readr")
+library("dplyr")
+library("tidyr")
+library("ggplot2")
+```
+
+```{r}
+gmfd <- read_csv("input/GMFDv3.csv")
+cy   <- read_csv("input/cy-target-set.csv")
+```
+
+```{r}
+dplyr::glimpse(gmfd)
+range(gmfd$year)
+range(cy$year)
+```
+
+We can drop the unneeded years right away before checking for country-year set overlap. 
+
+```{r}
+gmfd <- gmfd %>%
+  filter(year %in% unique(cy$year))
+
+gmfd_set <- gmfd[, c("ccode", "year")] %>%
+  mutate(in_gmfd = TRUE)
+cy_set   <- cy %>%
+  mutate(in_cy = TRUE)
+full_set <- full_join(gmfd_set, cy_set, 
+                      by = c("ccode" = "gwcode", "year" = "year")) %>%
+  replace_na(list(in_cy = FALSE, in_gmfd = FALSE))
+
+full_set %>% 
+  group_by(in_gmfd, in_cy) %>%
+  count()
+```
+
+Don't need to worry about (TRUE, FALSE), the (FALSE, TRUE) are a problem. Cases in `cy` that are missing in GMFD. Check which countries and years.
+
+```{r}
+full_set %>%
+  filter(in_gmfd==FALSE & in_cy==TRUE) %>%
+  group_by(ccode) %>%
+  summarize(year = paste0(year, collapse = ";"))
+```
+
+Post-1990 Germany is coded as 255 versus 260 in `cy`. 
+
+```{r}
+gmfd %>% filter(ccode==255)
+```
+
+Yemen is coded as 678 versus 679 in `cy`. 
+
+```{r}
+gmfd %>% filter(ccode==679)
+```
+
+Easy peasy. 
+
+```{r}
+gmfd <- gmfd %>%
+  mutate(ccode = case_when(
+    ccode==255L ~ 260L,
+    ccode==679L ~ 678L,
+    TRUE ~ as.integer(ccode)
+  )) %>%
+  rename(gwcode = ccode) %>%
+  mutate(in_gmfd = TRUE) %>%
+  full_join(cy_set, by = c("gwcode", "year")) %>%
+  filter(in_gmfd | in_cy)
+```
+
+Check there are no missing left.
+
+```{r}
+check <- gmfd %>%
+  group_by(in_gmfd, in_cy) %>%
+  count()
+
+if (any(is.na(gmfd$in_gmfd))) {
+  stop("GMFD is missing some needed cases")
+}
+```
+
+We can drop the excess GMFD cases. 
+
+```{r}
+gmfd <- gmfd %>%
+  filter(in_cy) %>%
+  select(-in_gmfd, -in_cy, -country)
+```
+
+The dataset authors recommend collapsing to a dichotomous "functinally free" version if used as IV. Do that. 
+
+```{r}
+gmfd <- gmfd %>%
+  mutate(gmfd_functionallyfree = as.integer(mediascore < 3)) %>%
+  select(-mediascore)
+```
+
+```{r}
+write_csv(gmfd, "output/gmfd.csv")
+```
+

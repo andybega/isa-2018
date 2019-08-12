@@ -112,6 +112,25 @@ cy <- read_rds("data-modules/ccp/output/ccp.rds") %>%
   left_join(cy, ., by = c("gwcode", "year"))
 
 
+# Add robustness vars -----------------------------------------------------
+
+
+# Global Media Freedom 
+cy <- read_csv("data-modules/global-media-freedom/output/gmfd.csv") %>%
+  left_join(cy, ., by = c("gwcode", "year"))
+
+# COW IGO stateunit
+cy <- read_csv("data-modules/cow-igo-stateunit/output/igo.csv") %>%
+  left_join(cy, ., by = c("gwcode", "year"))
+
+# Year; linear and squared
+p <- poly(cy$year, degree = 2)
+cy$year_poly1 <- p[, 1]
+cy$year_poly2 <- p[, 2]
+
+
+# Construct DV versions by victim type ------------------------------------
+
 # Construct DV versions for each victim type
 yy_levels <- c("Routine", "Widespread", "Systematic")
 yvars <- list(NULL)
