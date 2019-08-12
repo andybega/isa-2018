@@ -8,7 +8,8 @@
 notes.md
 
 # model objects are 10-20Mb, ignore for now
-output/models
+output/models/spec*
+output/models-old
 
 # CMPS reviews
 nogit/
