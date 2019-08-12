@@ -109,36 +109,39 @@ group_labeller <- function(x) {
 
 
 
-i = 1
-vv <- voi[i]
-
-# Subset relevant model list
-ml_i <- model_list[model_list$voi==vv, ]
-
-coefs_i <- lapply(ml_i$id, function(id) {
-  fh  <- sprintf("output/models/spec_%s.rds", model_list$id[id])
-  mdl <- read_rds(fh)
+for (i in seq_along(voi)) {
+  vv <- voi[i]
   
-  voi_coef <- tidy(mdl) %>%
-    select(y, term, estimate, std.error, p.value) %>%
-    filter(term == vv) %>%
-    mutate(id = id)
-  voi_coef
-})
-coefs_i <- bind_rows(coefs_i)
-coefs_i <- coefs_i %>%
-  left_join(ml_i %>% select(-spec, -model_func_name, -voi), by = "id")
-
-for (j in seq_along(dv)) {
-  yy <- dv[j]
+  flog.info("VOI: %s", vv)
   
-  coefs_ij <- coefs_i %>%
-    filter(y==yy) %>%
-    select(-y, -term)
-  p <- specplot(coefs_ij, group_labeller = group_labeller, highlight = hl) +
-    draw_figure_label(sprintf("VOI: %s\nDV: %s", vv, yy))
-  fh <- sprintf("output/figures-robustness/specplot-%s-%s.png", vv, yy)
-  ggsave(fh, plot = p, height = 8, width = 10)
+  # Subset relevant model list
+  ml_i <- model_list[model_list$voi==vv, ]
+  
+  coefs_i <- lapply(ml_i$id, function(id) {
+    fh  <- sprintf("output/models/spec_%s.rds", model_list$id[id])
+    mdl <- read_rds(fh)
+    
+    voi_coef <- tidy(mdl) %>%
+      select(y, term, estimate, std.error, p.value) %>%
+      filter(term == vv) %>%
+      mutate(id = id)
+    voi_coef
+  })
+  coefs_i <- bind_rows(coefs_i)
+  coefs_i <- coefs_i %>%
+    left_join(ml_i %>% select(-spec, -model_func_name, -voi), by = "id")
+  
+  for (j in seq_along(dv)) {
+    yy <- dv[j]
+    
+    coefs_ij <- coefs_i %>%
+      filter(y==yy) %>%
+      select(-y, -term)
+    p <- specplot(coefs_ij, group_labeller = group_labeller, highlight = hl) +
+      draw_figure_label(sprintf("VOI: %s\nDV: %s", vv, yy))
+    fh <- sprintf("output/figures-robustness/specplot-%s-%s.png", vv, yy)
+    ggsave(fh, plot = p, height = 8, width = 10)
+  }
 }
 
 
