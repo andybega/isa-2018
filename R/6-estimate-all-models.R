@@ -29,7 +29,7 @@ voi <- c(
 # Basic spec
 base_spec <- c(
   "Intercept(s) only" = "(1|gwcode) + 1", 
-  "Basic controls"    = "(1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + itt_RstrctAccess"
+  "Basic controls"    = "(1|gwcode) + 1 + norm_ln_NY.GDP.MKTP.KD + norm_ln_pop + internal_confl + itt_RstrctAccess"
   )
 
 # Which models to run?
@@ -57,12 +57,28 @@ year_trend <- c(
   "Squared" = "year_poly1 + year_poly2"
 )
 
+# HRO
+hro <- c(
+  "None" = "",
+  "HRO Number" = "hro_n",
+  "HRO HQs" = "hro_secloc"
+)
+
+econ_glob <- c(
+  "None" = "",
+  "Trade, % of GDP" = "norm_ln_NE.TRD.GNFS.ZS"
+)
+
+# make sure to add these in the for loop below, too
 model_list <- crossing(
   voi        = voi,
   base_spec  = names(base_spec),
   press_free = names(press_free),
   pol_glob   = names(pol_glob),
   year_trend = names(year_trend),
+  # these variables have missing values, don't use
+  #hro        = names(hro),
+  #econ_glob  = names(econ_glob),
   model      = names(model_type)
 ) %>%
   mutate(id = 1:n(),
@@ -87,7 +103,9 @@ for (i in 1:nrow(model_list)) {
     base_spec[row_i$base_spec],
     press_free[row_i$press_free],
     pol_glob[row_i$pol_glob],
-    year_trend[row_i$year_trend]
+    year_trend[row_i$year_trend]#,
+    #hro[row_i$hro],
+    #econ_glob[row_i$econ_glob]
   )
   spec_str <- Reduce(add_term, pieces, "~ ")
   # Take out RE in spec if glm model
@@ -122,6 +140,8 @@ for (i in 1:N_models) {
   # trim training data to reduce model size
   vars <- c(get_terms(spec_i), dv)
   cy_i <- cy[, vars]
+  # some of the robustness vars are missing cases, so subset as needed
+  #cy_i <- cy[complete.cases(cy), ]
   
   fh  <- sprintf("output/models/spec_%s.rds", model_list$id[i])
 

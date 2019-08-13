@@ -7,6 +7,7 @@ library("broom")  # for tidy
 library("readr")
 library("cowplot")
 library("tibble")
+library("futile.logger")
 
 source("R/functions.R")
 
@@ -18,6 +19,7 @@ voi <- c(
   c("epr_excluded_groups_count", "epr_excluded_group_pop",
     "dd_democracy")
 )
+voi <- sort(voi)
 
 # DV's
 dv <- c(
@@ -69,12 +71,15 @@ specplot <- function(x, group_labeller = NULL, highlight = NULL) {
     scale_color_manual(guide = FALSE, 
                        values = c("TRUE" = "blue", "FALSE" = "red")) +
     geom_hline(yintercept = 0) +
-    labs(x = "", y = "Coefficient estimate")
+    labs(x = "", y = "Coefficient estimate") +
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank())
   
   p2 <- ggplot(spec_table,
                aes(x = reorder(id, estimate), 
                    y = element,
-                   color = highlight)) + 
+                   size = highlight, color = highlight)) + 
     geom_point() +
     facet_grid(rows = "group", 
                scales = "free_y",
@@ -83,9 +88,12 @@ specplot <- function(x, group_labeller = NULL, highlight = NULL) {
     theme(strip.placement = "outside",
           strip.text.y = element_text(angle = 180, vjust = 1, hjust = 0),
           strip.background = element_blank()) +
-    labs(x = "", y = "") +
+    labs(x = "Specification", y = "") +
+    scale_size_manual(guide = FALSE,
+                      values = c("FALSE" = 2, "TRUE" = 4)) +
     scale_color_manual(guide = FALSE, 
-                       values = c("FALSE" = "black", "TRUE" = "blue"))
+                       values = c("FALSE" = "black", "TRUE" = "blue")) +
+    theme(axis.text.x=element_text(angle = 90, vjust = .5))
   
   plot_grid(p1, p2, ncol = 1, align = "v", axis = "l")
   
@@ -94,10 +102,12 @@ specplot <- function(x, group_labeller = NULL, highlight = NULL) {
 group_labeller <- function(x) {
   lvls <- c(
     "model" = "Model",
-    "base_spec" = "Base terms",
+    "base_spec"  = "Base terms",
     "press_free" = "Media freedom",
-    "pol_glob"  = "Pol. globalization",
-    "year_trend" = "Year trend"
+    "pol_glob"   = "Pol. globalization",
+    "year_trend" = "Year trend",
+    "hro"        = "HRO",
+    "econ_glob"  = "Econ. globalization"
   )
   xnew <- lvls[x]
   idx <- is.na(xnew)
@@ -137,7 +147,7 @@ for (i in seq_along(voi)) {
     coefs_ij <- coefs_i %>%
       filter(y==yy) %>%
       select(-y, -term)
-    p <- specplot(coefs_ij, group_labeller = group_labeller, highlight = hl) +
+    p <- specplot(x = coefs_ij, group_labeller = group_labeller, highlight = hl) +
       draw_figure_label(sprintf("VOI: %s\nDV: %s", vv, yy))
     fh <- sprintf("output/figures-robustness/specplot-%s-%s.png", vv, yy)
     ggsave(fh, plot = p, height = 8, width = 10)
