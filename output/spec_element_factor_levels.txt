@@ -1,0 +1,7 @@
+c("ccp_dueproc", "ccp_habcorp", "ccp_prerel", "ccp_speedtri", 
+"ccp_torture", "dd_democracy", "epr_excluded_group_pop", "epr_excluded_groups_count", 
+"v2clacjust", "v2clsocgrp", "v2pepwrses", "v2pepwrsoc", "v2x_jucon", 
+"v2xlg_legcon", "Poisson w RE (GLMER)", "Poisson (GLM)", "Basic controls", 
+"Intercept(s) only", "None", "Funct. free", "None", "IGO num", 
+"IGO fraction", "None", "Linear", "Squared", "None", "HRO Number", 
+"HRO HQs", "None", "Trade, % of GDP")

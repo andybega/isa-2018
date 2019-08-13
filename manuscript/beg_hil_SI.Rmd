@@ -44,5 +44,29 @@ cy %>%
   knitr::kable(digits = 0)
 ```
 
+The conduct the robustness / sensitivity analysis, we suggest the approach outlined in ...
+
+They suggest listing a set of reasonable model and specification choices, and the alternatives available for each. In a typical robustness check one would examine a limited number of these alternative choices. They suggest to instead examine all possible combinations of reasonable choices. In spirit this is a restricted version of extreme bounds analysis, that seeks to eliminate unreasonable specifications. For example it makes no sense to estimate a model including both raw and logged GDP, rather we would only want to examine one at a time. 
+
+We included the following choices in our sensitivity analysis:
+
+- Model type: 2 alternatives; either a regular Poisson count model or a Poisson count model with random country intercepts
+- Base terms: 2 alternatives; intercept(s) only or the basic controls, as discussed in the main paper. 
+- Media freedom: 2 alternatives; no control or the global media freedom index
+- Political globalization: 3 alternatives; no control or a count of HRO membership or a count of HRO secretariats located in a country
+- Year trend: 3 alternatives; no trend, linear trend, or squared trend
+
+Alltogether this represents 72 possible specifications. The one we report in the paper is a Poisson model with random country intercepts, includes the base control set, but does not include any other control variables. We examined each of the 72 specifications for each of the 14 variables of interest using each of the 3 dependent variables. 
+
+Each specification plot consists of two main elements. The plot panel on the top shows the coefficient estimates for a single variable of interest over a number of different specification on the x-axis. The points and lines show point estimates and 95\% confidence intervals; they are colored blue if the $p$ value is less than 0.05 and red otherwise. 
+
+The second panel at the bottom shows details for each specification. All the way on the left are the labels for each specification choice; the elements from which one could choose are in the next column. Lastly in the plot are markers indication, for each specification on the $x$-axis, which specific choices were made for each specification. 
+
+The specifications reported in the main paper are highlighted with the gray bars. 
+
+
+
+
+
 
 

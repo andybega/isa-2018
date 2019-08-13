@@ -69,6 +69,12 @@ econ_glob <- c(
   "Trade, % of GDP" = "norm_ln_NE.TRD.GNFS.ZS"
 )
 
+# For plotting, it helps to preserve the order of these things
+spec_element_factor_levels <- c(
+  voi, names(model_type), rev(names(base_spec)), names(press_free), names(pol_glob),
+  names(year_trend), names(hro), names(econ_glob))
+dput(spec_element_factor_levels, "output/spec_element_factor_levels.txt")
+
 # make sure to add these in the for loop below, too
 model_list <- crossing(
   voi        = voi,

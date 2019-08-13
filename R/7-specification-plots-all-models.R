@@ -37,63 +37,96 @@ model_list <- read_rds("output/models/model_list.rds")
 #'   - additional columns defining the specification choices
 #'   
 #'   
-specplot <- function(x, group_labeller = NULL, highlight = NULL) {
+specplot <- function(x, group_labeller = NULL, element_labeller = NULL,
+                     highlight = NULL) {
   df <- x
+  df$id <- reorder(factor(df$id), df$estimate)
   
   spec_table <- df %>%
-    select(-std.error, -p.value)
+    select(-estimate, -std.error, -p.value)
   
   # Highlight as needed
-  spec_table$highlight = FALSE
+  spec_table$highlight <- FALSE
+  df$highlight         <- FALSE
   if (!is.null(highlight)) {
-    hl <- as_tibble(as.list(highlight))
-    by_vars <- names(hl)
-    hl$.mark <- TRUE
-    spec_table <- left_join(spec_table, hl, by = by_vars) %>%
+    hldf <- as_tibble(as.list(highlight))
+    by_vars <- names(hldf)
+    hldf$.mark <- TRUE
+    
+    spec_table <- left_join(spec_table, hldf, by = by_vars) %>%
+      replace_na(list(.mark = FALSE)) %>%
+      mutate(highlight = .mark,
+             .mark = NULL)
+    df <- left_join(df, hldf, by = by_vars) %>%
       replace_na(list(.mark = FALSE)) %>%
       mutate(highlight = .mark,
              .mark = NULL)
   }
   
   spec_table <- spec_table %>%
-    gather(group, element, -id, -estimate, -highlight)
+    gather(group, element, -id, -highlight) 
   
   if (!is.null(group_labeller)) {
     spec_table <- spec_table %>%
       mutate(group = group_labeller(group))
   }
+  if (!is.null(element_labeller)) {
+    spec_table <- spec_table %>%
+      mutate(element = element_labeller(element))
+  }
   
-  p1 <- ggplot(df, aes(x  = reorder(id, estimate), 
+  hl_df <- df %>%
+    filter(highlight)
+  
+  p1 <- ggplot(df, aes(x  = id, 
                        y = estimate,
                        color = p.value < .05)) + 
+    annotation_raster(alpha("black", .2),
+                      xmin = as.integer(hl_df$id) - .5,
+                      xmax = as.integer(hl_df$id) + .5,
+                      ymin = -Inf, ymax = Inf) +
     geom_pointrange(aes(ymin = estimate - 1.96 * std.error, 
                         ymax = estimate + 1.96 * std.error)) +
     scale_color_manual(guide = FALSE, 
                        values = c("TRUE" = "blue", "FALSE" = "red")) +
-    geom_hline(yintercept = 0) +
+    geom_hline(yintercept = 0, linetype = 3) +
     labs(x = "", y = "Coefficient estimate") +
-    theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank(),
-          axis.ticks.x=element_blank())
+    theme_bw() +
+    theme(panel.grid.major.x = element_blank(),
+          axis.title.x = element_blank(),
+          axis.text.x = element_blank(),
+          axis.ticks.x = element_blank())
   
-  p2 <- ggplot(spec_table,
-               aes(x = reorder(id, estimate), 
+  hl_spec <- spec_table %>%
+    filter(highlight) 
+  
+  p2 <- ggplot(spec_table) + 
+    geom_rect(data = hl_spec,
+              xmin = as.integer(hl_spec$id) - .5,
+              xmax = as.integer(hl_spec$id) + .5,
+              aes(ymin = -Inf, ymax = Inf),
+              fill = "black", alpha = .2) +
+    geom_point(aes(x = id,
                    y = element,
-                   size = highlight, color = highlight)) + 
-    geom_point() +
+                   size = highlight, color = highlight)) +
     facet_grid(rows = "group", 
                scales = "free_y",
                space = "free_y", 
-               switch = "y") + 
-    theme(strip.placement = "outside",
-          strip.text.y = element_text(angle = 180, vjust = 1, hjust = 0),
-          strip.background = element_blank()) +
+               switch = "y") +
     labs(x = "Specification", y = "") +
     scale_size_manual(guide = FALSE,
-                      values = c("FALSE" = 2, "TRUE" = 4)) +
+                      values = c("FALSE" = 2, "TRUE" = 3)) +
     scale_color_manual(guide = FALSE, 
-                       values = c("FALSE" = "black", "TRUE" = "blue")) +
-    theme(axis.text.x=element_text(angle = 90, vjust = .5))
+                       values = c("FALSE" = "gray20", "TRUE" = "gray20")) +
+    theme_bw() +
+    theme(panel.grid.major = element_blank(),
+          strip.placement = "outside",
+          strip.text.y = element_text(size = 12,
+                                      angle = 180, vjust = 1, hjust = 0,
+                                      face = "bold"),
+          strip.background = element_blank(),
+          axis.text.x = element_text(angle = 90, vjust = .5),
+          axis.text.y = element_text(size = 12)) 
   
   plot_grid(p1, p2, ncol = 1, align = "v", axis = "l")
   
@@ -115,6 +148,12 @@ group_labeller <- function(x) {
   names(xnew)[idx] <- x[idx]
   
   factor(xnew, levels = c(unname(lvls), unique(x[idx])))
+}
+
+element_labeller <- function(x, lvls) {
+  lvls <- dget("output/spec_element_factor_levels.txt")
+  other_lvls <- setdiff(unique(x), lvls)
+  factor(x, levels = rev(c("None", setdiff(lvls, "None"), other_lvls)))
 }
 
 
@@ -147,8 +186,24 @@ for (i in seq_along(voi)) {
     coefs_ij <- coefs_i %>%
       filter(y==yy) %>%
       select(-y, -term)
-    p <- specplot(x = coefs_ij, group_labeller = group_labeller, highlight = hl) +
-      draw_figure_label(sprintf("VOI: %s\nDV: %s", vv, yy))
+    
+    # stats 
+    smry <- coefs_ij %>%
+      mutate(pos = estimate > 0,
+             sig = p.value < 0.05) %>%
+      summarize(`Pos sig` = sum(pos & sig),
+                `Neg sig` = sum(!pos & sig),
+                `Not sig` = sum(!sig))
+    smry <- paste0(sprintf("%s: %s", names(smry), smry), collapse = "\n")
+    
+    p <- specplot(x = coefs_ij, group_labeller = group_labeller, 
+                  element_labeller = element_labeller, highlight = hl) +
+      draw_plot_label(sprintf("VOI: %s\nDV: %s", vv, yy), 
+                      x = 0.01, y = .99, 
+                      hjust = 0, vjust = 1, fontface = "bold") +
+      draw_plot_label(smry,
+                      x = 0.01, y = 0.8,
+                      hjust = 0, vjust = 1, fontface = "plain", size = 12)
     fh <- sprintf("output/figures-robustness/specplot-%s-%s.png", vv, yy)
     ggsave(fh, plot = p, height = 8, width = 10)
   }
