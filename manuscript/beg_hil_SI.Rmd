@@ -1,0 +1,48 @@
+---
+title: "SI"
+author: ""
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library("dplyr")
+library("tidyr")
+library("readr")
+```
+
+```{r}
+cy <- read_rds("../output/cy.rds")
+```
+
+For additional robustness checks, we considered the following indicators:
+
+- Media freedom, from Whitten-Woodring and Van Belle, 2015, "The Correlates of Media Freedom", *PSRM*, via http://faculty.uml.edu/Jenifer_whittenwoodring/MediaFreedomData_000.aspx. Per the authors recommendations we collapsed the 3-valued media freedom indicator into a binary "functionally free" and "not free" version. 
+- IGO membership as an indicator of political globalization, from the COW IGO state unit dataset. 
+- Linear and squared year trends
+- Human rights organization membership (`hro_n`) and secretariat locations (`hro_secloc`). From Murdie and Davis 2012 "Shaming and Blaming", ISQ, http://amandamurdie.org/research.html, where the original variable names are `hrfilled` and `HRsecretariatlocation`.
+- Trade as % of GDP as an economic globalization indicator. From the World Bank WDI. 
+
+The trade and HRO data contain missing values. The number of observations in a model depend on the particular combination of the 3 indicators impacted in a given specification, such that:
+
+```{r}
+cy %>%
+  select(hro_n, hro_secloc, NE.TRD.GNFS.ZS) %>%
+  mutate_all(is.na) %>%
+  mutate(
+    None = FALSE,
+    `hro_n, hro_secloc` = hro_n | hro_secloc,
+    `hro_n, NE.TRD.GNFS.ZS` = hro_n | NE.TRD.GNFS.ZS,
+    `hro_n, hro_secloc, NE.TRD.GNFS.ZS` = hro_n | hro_secloc | NE.TRD.GNFS.ZS
+    ) %>%
+  summarize_all(~(n() - sum(.))) %>%
+  gather(Variables, N) %>%
+  mutate(Fraction = N / nrow(cy) * 100) %>%
+  arrange(desc(N)) %>%
+  knitr::kable(digits = 0)
+```
+
+
+

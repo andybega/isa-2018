@@ -1,0 +1,84 @@
+---
+title: "WDI trade for economic globalizationt"
+output: github_document
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library("dplyr")
+library("tidyr")
+library("readr")
+library("ggplot2")
+library("states")
+library("lubridate")
+```
+
+```{r}
+trade  <- read_csv("input/wdi-trade.csv")
+cy   <- read_csv("input/cy-target-set.csv")
+```
+
+## Set overlap
+
+Check country-year ID set overlap before merge. 
+
+```{r}
+trade <- trade %>%
+  filter(year %in% unique(cy$year),
+         !is.na(NE.TRD.GNFS.ZS)) 
+
+trade_set <- trade[, c("gwcode", "year")] %>%
+  mutate(in_trade = TRUE)
+cy_set   <- cy %>%
+  mutate(in_cy = TRUE)
+full_set <- full_join(trade_set, cy_set, 
+                      by = c("gwcode", "year")) %>%
+  replace_na(list(in_cy = FALSE, in_trade = FALSE))
+
+full_set %>% 
+  group_by(in_trade, in_cy) %>%
+  count()
+```
+
+Don't need to worry about (TRUE, FALSE), the (FALSE, TRUE) are a problem. Cases in `cy` that are missing in trade. Check which countries and years.
+
+```{r}
+full_set %>%
+  filter(in_trade==FALSE & in_cy==TRUE) %>%
+  group_by(gwcode) %>%
+  summarize(year = paste0(year, collapse = ";"))
+```
+
+All good! 
+
+```{r}
+trade <- trade %>%
+  mutate(in_trade = TRUE) %>%
+  full_join(cy_set, by = c("gwcode", "year")) %>%
+  filter(in_trade | in_cy)
+```
+
+```{r}
+check <- trade %>%
+  group_by(in_trade, in_cy) %>%
+  count()
+
+if (any(is.na(trade$in_trade))) {
+  warning("trade is missing some needed cases")
+}
+```
+
+We can drop the excess WDI cases. 
+
+```{r}
+trade <- trade %>%
+  filter(in_cy) %>%
+  select(-in_trade, -in_cy)
+```
+
+
+```{r}
+write_csv(trade, "output/trade.csv")
+```

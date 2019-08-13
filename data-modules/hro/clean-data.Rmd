@@ -1,0 +1,112 @@
+---
+title: "Human rights orgs"
+output: github_document
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library("dplyr")
+library("tidyr")
+library("readr")
+library("ggplot2")
+library("states")
+library("lubridate")
+```
+
+```{r}
+hro  <- read_csv("input/murdie_davis_isq_2010.csv")
+cy   <- read_csv("input/cy-target-set.csv")
+```
+
+Use "hrfilled" and "HROsecretariatlocation". 
+
+```{r}
+hro <- hro %>%
+  select(cowcode, year, hrfilled, HROsecretariatlocation) %>%
+  rename(gwcode = cowcode) %>%
+  filter(year %in% unique(cy$year))
+```
+
+Fix some country code divergences. This dataset is tricky because it tends to have all country codes, from both COW and G&W, e.g. it has 678 and 679, but one has missing values for the observations. 
+
+```{r}
+hro <- hro %>%
+  # Yemen
+  filter(gwcode != 678) %>%
+  mutate(gwcode = ifelse(gwcode==679, 678, gwcode)) 
+```
+
+
+## Set overlap
+
+Check country-year ID set overlap before merge. 
+
+```{r}
+hro_set <- hro[, c("gwcode", "year")] %>%
+  mutate(in_hro = TRUE)
+cy_set   <- cy %>%
+  mutate(in_cy = TRUE)
+full_set <- full_join(hro_set, cy_set, 
+                      by = c("gwcode", "year")) %>%
+  replace_na(list(in_cy = FALSE, in_hro = FALSE))
+
+full_set %>% 
+  group_by(in_hro, in_cy) %>%
+  count()
+```
+
+Don't need to worry about (TRUE, FALSE), the (FALSE, TRUE) are a problem. Cases in `cy` that are missing in hro. Check which countries and years.
+
+```{r}
+full_set %>%
+  filter(in_hro==FALSE & in_cy==TRUE) %>%
+  group_by(gwcode) %>%
+  summarize(year = paste0(year, collapse = ";"))
+```
+
+Cases are good, but there are hidden values.
+
+```{r}
+hro <- hro %>%
+  mutate(in_hro = TRUE) %>%
+  full_join(cy_set, by = c("gwcode", "year")) %>%
+  filter(in_hro | in_cy)
+```
+
+There are missing values for both indicators, aside from the country-year set match. Check each. "hrfilled" is missing 2004 and 2005, don't consider those. 
+
+```{r}
+hro %>%
+  filter(in_cy, is.na(hrfilled)) %>%
+  filter(year < 2004) %>%
+  group_by(gwcode) %>%
+  summarize(years = paste0(year, collapse = ";")) %>%
+  knitr::kable()
+```
+
+Now for "HROsecretariatlocation":
+
+```{r}
+hro %>%
+  filter(in_cy, is.na(HROsecretariatlocation)) %>%
+  group_by(gwcode) %>%
+  summarize(years = paste0(year, collapse = ";")) %>%
+  knitr::kable()
+```
+
+We can drop the excess HRO cases. 
+
+```{r}
+hro <- hro %>%
+  filter(in_cy) %>%
+  select(-in_hro, -in_cy) %>%
+  rename(hro_n = hrfilled,
+         hro_secloc = HROsecretariatlocation)
+```
+
+
+```{r}
+write_csv(hro, "output/hro.csv")
+```

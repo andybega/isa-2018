@@ -119,10 +119,19 @@ cy <- read_rds("data-modules/ccp/output/ccp.rds") %>%
 cy <- read_csv("data-modules/global-media-freedom/output/gmfd.csv") %>%
   left_join(cy, ., by = c("gwcode", "year"))
 
-# COW IGO stateunit
+# COW IGO stateunit (political globalization)
 cy <- read_csv("data-modules/cow-igo-stateunit/output/igo.csv") %>%
   left_join(cy, ., by = c("gwcode", "year"))
 
+# Trade as % GDP (social/economic globalization)
+cy <- read_csv("data-modules/wdi-trade/output/trade.csv") %>%
+  left_join(cy, ., by = c("gwcode", "year")) %>%
+  mutate(norm_ln_NE.TRD.GNFS.ZS = scale(log(NE.TRD.GNFS.ZS))[, 1])
+
+# HRO membership
+cy <- read_csv("data-modules/hro/output/hro.csv") %>%
+  left_join(cy, ., by = c("gwcode", "year"))
+ 
 # Year; linear and squared
 p <- poly(cy$year, degree = 2)
 cy$year_poly1 <- p[, 1]
@@ -161,8 +170,14 @@ cy <- cy %>%
 cy <- cy %>%
   select(-h_indjudiciary, -hensel_colonial)
 
-any_mssng <- sum(sapply(cy, function(x) sum(is.na(x))))
-if (any_mssng) stop("There are missing values in cy, something is wrong")
+miss <- sapply(cy, function(x) sum(is.na(x)))
+any_mssng <- sum(miss) > 0
+if (any_mssng) {
+  x <- miss[miss > 0]
+  deets <- paste0(sprintf("%s (%s)", names(x), x), collapse = "; ")
+  warning("There are missing values in cy:\n", deets)
+}
+
 
 # 
 #   Done, save
