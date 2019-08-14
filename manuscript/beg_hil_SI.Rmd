@@ -2,7 +2,10 @@
 title: "SI"
 author: ""
 date: "`r format(Sys.Date(), '%d %B %Y')`"
-output: pdf_document
+output: 
+  pdf_document:
+    keep_tex: yes
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -11,6 +14,7 @@ knitr::opts_chunk$set(echo = FALSE)
 library("dplyr")
 library("tidyr")
 library("readr")
+library("stringr")
 ```
 
 ```{r}
@@ -44,7 +48,9 @@ cy %>%
   knitr::kable(digits = 0)
 ```
 
-The conduct the robustness / sensitivity analysis, we suggest the approach outlined in ...
+# Sensitivity analysis
+
+The conduct the robustness / sensitivity analysis, we suggest the "reasonable specification" approach outlined in ...
 
 They suggest listing a set of reasonable model and specification choices, and the alternatives available for each. In a typical robustness check one would examine a limited number of these alternative choices. They suggest to instead examine all possible combinations of reasonable choices. In spirit this is a restricted version of extreme bounds analysis, that seeks to eliminate unreasonable specifications. For example it makes no sense to estimate a model including both raw and logged GDP, rather we would only want to examine one at a time. 
 
@@ -58,15 +64,32 @@ We included the following choices in our sensitivity analysis:
 
 Alltogether this represents 72 possible specifications. The one we report in the paper is a Poisson model with random country intercepts, includes the base control set, but does not include any other control variables. We examined each of the 72 specifications for each of the 14 variables of interest using each of the 3 dependent variables. 
 
+## Specification plot intro
+
 Each specification plot consists of two main elements. The plot panel on the top shows the coefficient estimates for a single variable of interest over a number of different specification on the x-axis. The points and lines show point estimates and 95\% confidence intervals; they are colored blue if the $p$ value is less than 0.05 and red otherwise. 
 
 The second panel at the bottom shows details for each specification. All the way on the left are the labels for each specification choice; the elements from which one could choose are in the next column. Lastly in the plot are markers indication, for each specification on the $x$-axis, which specific choices were made for each specification. 
 
 The specifications reported in the main paper are highlighted with the gray bars. 
 
+\includegraphics{../output/figures-robustness/specplot-ccp_dueproc-itt_alleg_vtcriminal.png}
 
+# List of all specification plots
 
+```{r, results = 'asis'}
+plots <- list.files("../output/figures-robustness", full.names = TRUE)
 
-
+this_voi <- ""
+for (fh in plots) {
+  meta <- str_split(basename(fh), "-")[[1]]
+  if (this_voi != meta[2]) {
+    this_voi <- meta[2]
+    cat(sprintf("\n## VOI: %s\n", this_voi))
+  }
+  cat("\n")
+  cat(sprintf("\\includegraphics[height=4in]{%s}", fh))
+  cat("\n")
+}
+```
 
 
