@@ -6,20 +6,31 @@ output:
   pdf_document:
     keep_tex: yes
     toc: yes
+bibliography: beg_hil.bib
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE)
 
 library("dplyr")
 library("tidyr")
 library("readr")
 library("stringr")
+library("tibble")
+library("kableExtra")
+library("forcats")
+
+# for order_terms()
+source("../R/functions.R")
 ```
 
 ```{r}
 cy <- read_rds("../output/cy.rds")
 ```
+
+# Additional control variable choices
 
 For additional robustness checks, we considered the following indicators:
 
@@ -45,42 +56,75 @@ cy %>%
   gather(Variables, N) %>%
   mutate(Fraction = N / nrow(cy) * 100) %>%
   arrange(desc(N)) %>%
-  knitr::kable(digits = 0)
+  knitr::kable(digits = 0, booktabs = TRUE) %>%
+  kable_styling()
 ```
+
+Since any coefficient estimate differences between a model that includes one or more of these three variables with missing values and another without, we decided to not use them. Thus we restrict our sensitivity analysis to the first three items in the list above. 
 
 # Sensitivity analysis
 
-The conduct the robustness / sensitivity analysis, we suggest the "reasonable specification" approach outlined in ...
+The conduct the robustness / sensitivity analysis, we followed the "reasonable specification" approach outlined in @simonsohn2015specification. This is a method that fits in the space between estimating a limited number of additional models for robustness checks and extreme bounds analysis where we estimate all possible combinations of specifications given a set of variables. Instead, they suggest listing a set of reasonable modeling and specification choices, where each choice is a decision between two or more alternatives, and then estimating all combinations of those choices. In the languge of Gelman's garden of forking paths [-@gelman2013garden], we try to follow all paths a reasonable modeller might take. 
 
-They suggest listing a set of reasonable model and specification choices, and the alternatives available for each. In a typical robustness check one would examine a limited number of these alternative choices. They suggest to instead examine all possible combinations of reasonable choices. In spirit this is a restricted version of extreme bounds analysis, that seeks to eliminate unreasonable specifications. For example it makes no sense to estimate a model including both raw and logged GDP, rather we would only want to examine one at a time. 
+In spirit this is a restricted version of extreme bounds analysis, that seeks to eliminate unreasonable specifications. For example it makes no sense to estimate a model including both raw and logged GDP, rather we would only want to examine one at a time. 
 
 We included the following choices in our sensitivity analysis:
 
-- Model type: 2 alternatives; either a regular Poisson count model or a Poisson count model with random country intercepts
+- Model type: 2 alternatives; either a regular Poisson count model (GLM) or a Poisson count model with random country intercepts (GLMER).
 - Base terms: 2 alternatives; intercept(s) only or the basic controls, as discussed in the main paper. 
 - Media freedom: 2 alternatives; no control or the global media freedom index
 - Political globalization: 3 alternatives; no control or a count of HRO membership or a count of HRO secretariats located in a country
 - Year trend: 3 alternatives; no trend, linear trend, or squared trend
 
-Alltogether this represents 72 possible specifications. The one we report in the paper is a Poisson model with random country intercepts, includes the base control set, but does not include any other control variables. We examined each of the 72 specifications for each of the 14 variables of interest using each of the 3 dependent variables. 
+Altogether this represents 72 possible specifications. The one we report in the paper is a Poisson model with random country intercepts, includes the base control set, but does not include any other control variables. We examined each of the 72 specifications for each of the 14 variables of interest using each of the 3 dependent variables. 
 
-## Specification plot intro
+Altogether this comes out to 3,024 estimated models. Simonsohn et al use specification plots as the first step in interpreting the findings. Since we still have 42 specification plots overall, we skip this and first summarize even further by tallying, for each VOI, the number of coefficient estimates that are negative and stastistically significant ($p < 0.05$), negative but $p > 0.05$, positive but $p > 0.05$ and lastly positive and significant. This is shown below in Table \ref{tab:sens}, and next we will highlight findings regarding the main results we present in the paper. After that will be a section where we show what specification plots are, followed by a list of all 42. 
 
-Each specification plot consists of two main elements. The plot panel on the top shows the coefficient estimates for a single variable of interest over a number of different specification on the x-axis. The points and lines show point estimates and 95\% confidence intervals; they are colored blue if the $p$ value is less than 0.05 and red otherwise. 
+```{r}
+tbl <- read_csv("../output/all-models-direction-table.csv")
+tbl %>%
+  mutate(Variable = order_terms(Variable)) %>%
+  arrange(desc(Variable), Outcome) %>%
+  knitr::kable(caption = "Summary of sensitivity analysis estimates", 
+               label = "sens",
+               booktabs = TRUE) %>%
+  kable_styling()
+```
 
-The second panel at the bottom shows details for each specification. All the way on the left are the labels for each specification choice; the elements from which one could choose are in the next column. Lastly in the plot are markers indication, for each specification on the $x$-axis, which specific choices were made for each specification. 
+## Summary of findings
 
-The specifications reported in the main paper are highlighted with the gray bars. 
+- **Negative relationship for "Democracy 0/1"**. We report a negative relationship between this and all three outcomes. This largely holds up, with significant negative estimates in all 72 specs for "dissidents", 66 for "criminal", and 51 for "marginalized"
+- **Negative relationship for constitutional provisions**, with only one negative but insignificant estimate for "CCP Habeas Corpus" on "Criminal". 
+
+
+<!-- want the table to pop up before this -->
+\clearpage
+
+# Specification plots
+
+The specification plots provide more details than our summary above does, and also make it possible to identify, to some extent, which specification choices lead to certain findings. Thus we include them here for anyone interested in more detail. 
+
+## Introduction
+
+This is an example of a specification plot for the indicator of whether a country constitution includes a due process provision (`ccp_dueproc`) and where the DV is ITT allegations of criminal torture (`itt_alleg_vtcriminal`). 
 
 \includegraphics{../output/figures-robustness/specplot-ccp_dueproc-itt_alleg_vtcriminal.png}
 
-# List of all specification plots
+The plot consists of two main elements. The panel on the top shows the coefficient estimates for the variable of interest over a number of different specification on the x-axis. The points and lines show point estimates and 95\% confidence intervals; they are colored red and blue for stastitically significant ($p$-value $< 0.05$) negative and positive effects and grey for statisticall insignificant estimates. 
+
+The second panel at the bottom shows details for each specification. All the way on the left are the labels for each specification choice; the elements from which one could choose are in the next column. For example for "Model" we made a choice between a regular Poisson count model with global intercept only, versus a GLMER Poisson model that also includes country random effects (RE). The $x$-axis are still specifications, and the dots in the plot mark what choices were made in each specification. 
+
+The specification we used in the main paper are highlighted in both blots with the grey rectangles. We've also annotated each plot with text in the top left that summarizes the number of significant positive or negative, as well as insignificant, estimates. 
+
+In terms of interpretation, we can firstly see that a large but not overwhelming proportion of estimates are positive and significant. The patterns of dots in the specification bottom plot can give some hints at what is driven estimate patterns. Long sequences like that for "Model" indicate that a specification choice is strongly related to estimates, and indeed the positive and significant estimates are entirely due to using a model with only a global, not country random, intercepts. Uniform spacing on the other hand indicates that a choice plays only a small row. This is for example the case with Media freedom when using a Poisson RE model--the estimates change only slightly as the media freedom indicator changes. 
+
+## List of all specification plots, by VOI
 
 ```{r, results = 'asis'}
 plots <- list.files("../output/figures-robustness", full.names = TRUE)
 
 this_voi <- ""
-for (fh in plots) {
+for (fh in plots[1:5]) {
   meta <- str_split(basename(fh), "-")[[1]]
   if (this_voi != meta[2]) {
     this_voi <- meta[2]
@@ -92,4 +136,4 @@ for (fh in plots) {
 }
 ```
 
-
+# References

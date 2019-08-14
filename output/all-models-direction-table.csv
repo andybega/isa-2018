@@ -1,0 +1,43 @@
+Variable,Outcome,neg,leanneg,leanpos,pos
+CCP Due process,Criminal,6,18,12,36
+CCP Due process,Dissident,39,15,0,18
+CCP Due process,Marginalized,45,5,4,18
+CCP Habeas corpus,Criminal,0,7,18,47
+CCP Habeas corpus,Dissident,72,0,0,0
+CCP Habeas corpus,Marginalized,36,5,26,5
+CCP Pretrial release,Criminal,36,0,0,36
+CCP Pretrial release,Dissident,63,0,0,9
+CCP Pretrial release,Marginalized,36,9,3,24
+CCP Speedy trial,Criminal,36,0,0,36
+CCP Speedy trial,Dissident,64,6,2,0
+CCP Speedy trial,Marginalized,29,25,0,18
+CCP Torture,Criminal,30,13,14,15
+CCP Torture,Dissident,66,6,0,0
+CCP Torture,Marginalized,45,12,13,2
+"Democracy, 0/1",Criminal,66,0,3,3
+"Democracy, 0/1",Dissident,72,0,0,0
+"Democracy, 0/1",Marginalized,51,0,1,20
+EPR Excluded groups (% of total pop),Criminal,0,0,0,72
+EPR Excluded groups (% of total pop),Dissident,0,0,0,72
+EPR Excluded groups (% of total pop),Marginalized,0,17,19,36
+EPR Excluded groups (count),Criminal,0,7,9,56
+EPR Excluded groups (count),Dissident,0,0,0,72
+EPR Excluded groups (count),Marginalized,0,0,0,72
+VDem Civil liberty social class equality,Criminal,72,0,0,0
+VDem Civil liberty social class equality,Dissident,72,0,0,0
+VDem Civil liberty social class equality,Marginalized,72,0,0,0
+VDem Civil liberty social group equality,Criminal,60,12,0,0
+VDem Civil liberty social group equality,Dissident,72,0,0,0
+VDem Civil liberty social group equality,Marginalized,72,0,0,0
+VDem Power by socioeconomic position,Criminal,61,11,0,0
+VDem Power by socioeconomic position,Dissident,72,0,0,0
+VDem Power by socioeconomic position,Marginalized,70,2,0,0
+VDem Power by social group,Criminal,41,30,1,0
+VDem Power by social group,Dissident,72,0,0,0
+VDem Power by social group,Marginalized,69,0,0,3
+VDem Judicial constraints on executive,Criminal,51,21,0,0
+VDem Judicial constraints on executive,Dissident,72,0,0,0
+VDem Judicial constraints on executive,Marginalized,69,0,0,3
+VDem Legislative constraints on executive,Criminal,30,4,32,6
+VDem Legislative constraints on executive,Dissident,72,0,0,0
+VDem Legislative constraints on executive,Marginalized,36,22,11,3

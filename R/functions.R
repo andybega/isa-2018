@@ -256,58 +256,81 @@ rename_terms <- function(term) {
   df <- tibble(term = factor(as.character(term)))
   suppressWarnings({
     df <- df %>%
-      mutate(term = fct_recode(term, 
-                               "Global intercept" = "(Intercept)",
-                               "Country intercepts, SD" = "sd_(Intercept).gwcode",
-                               "ln GDP ($ billions)" = "log(NY.GDP.MKTP.KD)",
-                               "ln GDP (normalized)" = "norm_ln_NY.GDP.MKTP.KD",
-                               "ln Population (millions)" = "log(pop)",
-                               "ln Population (normalized)" = "norm_ln_pop", 
-                               "Natural resource rents, %GDP, log(x + 1)" = "log1p(NY.GDP.TOTL.RT.ZS)",
-                               "Democracy, 0/1" = "dd_democracy",
-                               "Judicial independence" = "LJI",
-                               "ACD Internal conflict" = "internal_confl",
-                               "INGO restricted access" = "itt_RstrctAccess",
-                               "Legal system: Common" = "mrs_legalsysCommon",
-                               "Legal system: Islamic" = "mrs_legalsysIslamic",
-                               "Legal system: Mixed" = "mrs_legalsysMixed",
-                               # CCP
-                               "CCP Torture" = "ccp_torture",
-                               "CCP Due process" = "ccp_dueproc",
-                               "CCP Habeas corpus" = "ccp_habcorp",
-                               "CCP Pretrial release" = "ccp_prerel",
-                               "CCP Speedy trial" = "ccp_speedtri",
-                               # EPR
-                               "EPR Excluded groups (count)" = "epr_excluded_groups_count",
-                               "EPR Excluded groups (count, log(x + 1), normalized)" = "norm_ln1p_epr_excluded_groups_count",
-                               "EPR Excluded groups (% of total pop)" = "epr_excluded_group_pop",
-                               "EPR Excluded groups (% of total pop, sqrt, normalized)" = "norm_sqrt_epr_excluded_group_pop",
-                               # V-Dem
-                               "VDem Suffrage" = "v2asuffrage",
-                               "VDem Civil liberty social class equality" = "v2clacjust",
-                               "VDem Civil liberty social group equality" = "v2clsocgrp",
-                               "VDem Power by socioeconomic position" = "v2pepwrses",
-                               "VDem Power by social group" = "v2pepwrsoc",
-                               "VDem Elected officials index" = "v2x_elecoff",
-                               "VDem Judicial constraints on executive" = "v2x_jucon",
-                               "VDem Clean elections index" = "v2xel_frefair",
-                               "VDem Legislative constraints on executive" = "v2xlg_legcon"),
-             # for ggplot
-             term = fct_rev(term),
-             term = term %>%
-               fct_relevel(c("Country intercepts, SD", "Global intercept", 
-                             "ln Population (millions)", "ln GDP ($ billions)", 
-                             "ln Population (normalized)", "ln GDP (normalized)",
-                             "INGO restricted access", "ACD Internal conflict")) %>%
-               fct_relevel(c("Democracy, 0/1",
-                             "Legal system: Mixed", "Legal system: Islamic",
-                             "Legal system: Common", "Legal system: Civil\n(reference category)",
-                             "Judicial independence"), after = Inf))
+      mutate(term = fct_recode(
+        term, 
+        "Global intercept" = "(Intercept)",
+        "Country intercepts, SD" = "sd_(Intercept).gwcode",
+        "ln GDP ($ billions)" = "log(NY.GDP.MKTP.KD)",
+        "ln GDP (normalized)" = "norm_ln_NY.GDP.MKTP.KD",
+        "ln Population (millions)" = "log(pop)",
+        "ln Population (normalized)" = "norm_ln_pop", 
+        "Natural resource rents, %GDP, log(x + 1)" = "log1p(NY.GDP.TOTL.RT.ZS)",
+        "Democracy, 0/1" = "dd_democracy",
+        "Judicial independence" = "LJI",
+        "ACD Internal conflict" = "internal_confl",
+        "INGO restricted access" = "itt_RstrctAccess",
+        "Legal system: Common" = "mrs_legalsysCommon",
+        "Legal system: Islamic" = "mrs_legalsysIslamic",
+        "Legal system: Mixed" = "mrs_legalsysMixed",
+        # CCP
+        "CCP Torture" = "ccp_torture",
+        "CCP Due process" = "ccp_dueproc",
+        "CCP Habeas corpus" = "ccp_habcorp",
+        "CCP Pretrial release" = "ccp_prerel",
+        "CCP Speedy trial" = "ccp_speedtri",
+        # EPR
+        "EPR Excluded groups (count)" = "epr_excluded_groups_count",
+        "EPR Excluded groups (count, log(x + 1), normalized)" = "norm_ln1p_epr_excluded_groups_count",
+        "EPR Excluded groups (% of total pop)" = "epr_excluded_group_pop",
+        "EPR Excluded groups (% of total pop, sqrt, normalized)" = "norm_sqrt_epr_excluded_group_pop",
+        # V-Dem
+        "VDem Suffrage" = "v2asuffrage",
+        "VDem Civil liberty social class equality" = "v2clacjust",
+        "VDem Civil liberty social group equality" = "v2clsocgrp",
+        "VDem Power by socioeconomic position" = "v2pepwrses",
+        "VDem Power by social group" = "v2pepwrsoc",
+        "VDem Elected officials index" = "v2x_elecoff",
+        "VDem Judicial constraints on executive" = "v2x_jucon",
+        "VDem Clean elections index" = "v2xel_frefair",
+        "VDem Legislative constraints on executive" = "v2xlg_legcon")
+        )
   })
-  
+  df <- df %>%
+    mutate(term = order_terms(term))
+    
   df$term
 }
 
+order_terms <- function(x) {
+  df <- tibble(term = factor(as.character(x))) %>%
+    mutate(
+      term = fct_rev(term),
+      term = term %>%
+        fct_relevel(c("Country intercepts, SD", "Global intercept", 
+                      "ln Population (millions)", "ln GDP ($ billions)", 
+                      "ln Population (normalized)", "ln GDP (normalized)",
+                      "INGO restricted access", "ACD Internal conflict")) %>%
+        fct_relevel(c("Democracy, 0/1",
+                      "Legal system: Mixed", "Legal system: Islamic",
+                      "Legal system: Common", "Legal system: Civil\n(reference category)",
+                      "Judicial independence"), after = Inf)
+    )
+  df$term
+}
+
+rename_dvs <- function(x) {
+  df <- tibble(x = factor(as.character(x)))
+  suppressWarnings({
+    df <- df %>%
+      mutate(x = fct_recode(
+        x, 
+        "Criminal" = "itt_alleg_vtcriminal",
+        "Dissident" = "itt_alleg_vtdissident",
+        "Marginalized" = "itt_alleg_vtmarginalized")
+      )
+  })
+  df$x
+}
 
 fix_table_varnames <- function(str) {
   dict <- list(
