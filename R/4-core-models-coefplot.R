@@ -20,7 +20,14 @@ coefs <- models %>%
 h_width = .95
 alpha = .5
 p <- coefs %>%
-  ggplot(., aes(y = estimate, x = term, color = (p.value > 0.05))) +
+  mutate(
+    direction = case_when(
+      estimate < 0 & p.value < 0.05 ~ "neg",
+      estimate > 0 & p.value < 0.05 ~ "pos",
+      p.value > 0.05 ~ "insig"
+    ),
+    direction = factor(direction, levels = c("neg", "insig", "pos"))) %>%
+  ggplot(., aes(y = estimate, x = term, color = direction)) +
   geom_hline(yintercept = 0, linetype = 1, color = "gray70", size = .4) +
   facet_wrap(~ outcome) +
   coord_flip() +
@@ -28,15 +35,17 @@ p <- coefs %>%
                      ymax = estimate + 1.96*std.error,
                      group = interaction(variable, specification)),
                  position = position_dodge(width = h_width), alpha = alpha) +
-  #geom_linerange(aes(ymin = estimate - 1.28*std.error, ymax = estimate + 1.28*std.error),
-  #               position = position_dodge(width = h_width), size = 1) +
   geom_point(aes(group = interaction(variable, specification)),
              position = position_dodge(width = h_width), alpha = alpha) +
   theme_ipsum() +
   labs(x = "", y = "") +
-  scale_color_manual("Statistical significance",
-                     values = c("#3B9AB2", "#F21A00"), na.value = "gray50",
-                     labels = c("p < 0.05", "p > 0.05", "n/a")) +
+  scale_color_manual("Sign and statistical significance:",
+                     # colors: wes_palette("Zissou1")[c(1,3,5)]
+                     values = c("pos"   = "#3B9AB2", 
+                                "insig" = "gray50",
+                                "neg"   = "#F21A00"), na.value = "gray50",
+                     labels = c("Neg & p < 0.05", "p > 0.05", "Pos & p < 0.05", 
+                                "n/a")) +
   theme(plot.margin = unit(c(1,1,1,1), "cm"),
         legend.position = "bottom")
 p

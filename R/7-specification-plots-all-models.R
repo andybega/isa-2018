@@ -41,9 +41,19 @@ specplot <- function(x, group_labeller = NULL, element_labeller = NULL,
                      highlight = NULL) {
   df <- x
   df$id <- reorder(factor(df$id), df$estimate)
+  # add 'direction' to encode how lines should be colored
+  df <- df %>%
+    mutate(
+      direction = case_when(
+        estimate < 0 & p.value < 0.05 ~ "neg",
+        estimate > 0 & p.value < 0.05 ~ "pos",
+        p.value > 0.05 ~ "insig"
+      ),
+      direction = factor(direction, levels = c("neg", "insig", "pos"))
+    )
   
   spec_table <- df %>%
-    select(-estimate, -std.error, -p.value)
+    select(-estimate, -std.error, -p.value, -direction)
   
   # Highlight as needed
   spec_table$highlight <- FALSE
@@ -80,15 +90,20 @@ specplot <- function(x, group_labeller = NULL, element_labeller = NULL,
   
   p1 <- ggplot(df, aes(x  = id, 
                        y = estimate,
-                       color = p.value < .05)) + 
+                       color = direction)) + 
     annotation_raster(alpha("black", .2),
                       xmin = as.integer(hl_df$id) - .5,
                       xmax = as.integer(hl_df$id) + .5,
                       ymin = -Inf, ymax = Inf) +
     geom_pointrange(aes(ymin = estimate - 1.96 * std.error, 
                         ymax = estimate + 1.96 * std.error)) +
-    scale_color_manual(guide = FALSE, 
-                       values = c("TRUE" = "blue", "FALSE" = "red")) +
+    scale_color_manual(guide = FALSE,
+                       # colors: wes_palette("Zissou1")[c(1,3,5)]
+                       values = c("pos"   = "#3B9AB2", 
+                                  "insig" = "gray50",
+                                  "neg"   = "#F21A00"), na.value = "gray50",
+                       labels = c("Neg & p < 0.05", "p > 0.05", "Pos & p < 0.05", 
+                                  "n/a")) +
     geom_hline(yintercept = 0, linetype = 3) +
     labs(x = "", y = "Coefficient estimate") +
     theme_bw() +
