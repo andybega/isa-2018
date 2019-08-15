@@ -1,3 +1,10 @@
+#
+#   Make specification plots for all sensitivity analysis models
+#
+#   15 August 2019
+#
+#   depends on 6-estimate-all-models.R output
+#
 
 library("nlme")
 library("lme4")
@@ -8,18 +15,29 @@ library("readr")
 library("cowplot")
 library("tibble")
 library("futile.logger")
+library("ggplot2")
 
 source("R/functions.R")
 
 
-# Variables of interest
+# Setup list of variables of interest
 voi <- c(
-  c("ccp_torture", "ccp_prerel", "ccp_habcorp", "ccp_dueproc", "ccp_speedtri"),
-  c("v2x_jucon", "v2xlg_legcon", "v2clacjust", "v2clsocgrp", "v2pepwrses", "v2pepwrsoc"),
-  c("epr_excluded_groups_count", "epr_excluded_group_pop",
-    "dd_democracy")
+  c("dd_democracy"),
+  sort(c("ccp_torture", 
+         "ccp_prerel", 
+         "ccp_habcorp", 
+         "ccp_dueproc", 
+         "ccp_speedtri")),
+  c("epr_excluded_groups_count" = "norm_sqrt_epr_excluded_group_pop", 
+    "epr_excluded_group_pop" = "norm_ln1p_epr_excluded_groups_count"),
+  sort(c("v2x_jucon", 
+         "v2xlg_legcon", 
+         "v2clacjust", 
+         "v2clsocgrp", 
+         "v2pepwrses", 
+         "v2pepwrsoc"))
 )
-voi <- sort(voi)
+names(voi)[names(voi)==""] <- voi[names(voi)==""]
 
 # DV's
 dv <- c(
@@ -174,20 +192,21 @@ element_labeller <- function(x, lvls) {
 
 
 for (i in seq_along(voi)) {
-  vv <- voi[i]
+  vv_name      <- names(voi)[i]
+  vv_indicator <- voi[i]
   
-  flog.info("VOI: %s", vv)
+  flog.info("VOI: %s", vv_name)
   
   # Subset relevant model list
-  ml_i <- model_list[model_list$voi==vv, ]
+  ml_i <- model_list[model_list$voi==vv_name, ]
   
   coefs_i <- lapply(ml_i$id, function(id) {
-    fh  <- sprintf("output/models/spec_%s.rds", model_list$id[id])
+    fh  <- sprintf("output/models/spec_%04d.rds", model_list$id[id])
     mdl <- read_rds(fh)
     
     voi_coef <- tidy(mdl) %>%
       select(y, term, estimate, std.error, p.value) %>%
-      filter(term == vv) %>%
+      filter(term == vv_indicator) %>%
       mutate(id = id)
     voi_coef
   })
@@ -213,13 +232,13 @@ for (i in seq_along(voi)) {
     
     p <- specplot(x = coefs_ij, group_labeller = group_labeller, 
                   element_labeller = element_labeller, highlight = hl) +
-      draw_plot_label(sprintf("VOI: %s\nDV: %s", vv, yy), 
+      draw_plot_label(sprintf("VOI: %s\nDV: %s", vv_name, yy), 
                       x = 0.01, y = .99, 
                       hjust = 0, vjust = 1, fontface = "bold") +
       draw_plot_label(smry,
                       x = 0.01, y = 0.8,
                       hjust = 0, vjust = 1, fontface = "plain", size = 12)
-    fh <- sprintf("output/figures-robustness/specplot-%s-%s.png", vv, yy)
+    fh <- sprintf("output/figures-robustness/specplot-%s-%s.png", vv_name, yy)
     ggsave(fh, plot = p, height = 8, width = 10)
   }
 }

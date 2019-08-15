@@ -17,19 +17,29 @@ library("futile.logger")
 source("R/functions.R")
 
 
-# Variables of interest
+# Setup list of variables of interest
 voi <- c(
-  c("ccp_torture", "ccp_prerel", "ccp_habcorp", "ccp_dueproc", "ccp_speedtri"),
-  c("v2x_jucon", "v2xlg_legcon", "v2clacjust", "v2clsocgrp", "v2pepwrses", "v2pepwrsoc"),
-  c("epr_excluded_groups_count", "epr_excluded_group_pop",
-    "dd_democracy")
+  c("dd_democracy"),
+  sort(c("ccp_torture", 
+         "ccp_prerel", 
+         "ccp_habcorp", 
+         "ccp_dueproc", 
+         "ccp_speedtri")),
+  c("epr_excluded_groups_count" = "norm_sqrt_epr_excluded_group_pop", 
+    "epr_excluded_group_pop" = "norm_ln1p_epr_excluded_groups_count"),
+  sort(c("v2x_jucon", 
+         "v2xlg_legcon", 
+         "v2clacjust", 
+         "v2clsocgrp", 
+         "v2pepwrses", 
+         "v2pepwrsoc"))
 )
-voi <- sort(voi)
+names(voi)[names(voi)==""] <- voi[names(voi)==""]
 
 model_list <- read_rds("output/models/model_list.rds")
 
 coefs_i <- lapply(model_list$id, function(id) {
-  fh  <- sprintf("output/models/spec_%s.rds", model_list$id[id])
+  fh  <- sprintf("output/models/spec_%04d.rds", model_list$id[id])
   mdl <- read_rds(fh)
   
   voi_coef <- tidy(mdl) %>%
@@ -51,8 +61,10 @@ coefs <- coefs %>%
     direction = factor(direction, levels = c("pos", "leanpos", "leanneg", "neg"))
   )
 coefs <- coefs %>%
-  rename(voi = term) %>%
-  left_join(model_list %>% select(-spec, -model_func_name, -voi), by = "id")
+  # the term can sometimes be different from the VOI name, so use model_list
+  # which has the VOI name, not indicator name
+  select(-term) %>%
+  left_join(model_list %>% select(-spec, -model_func_name, voi), by = "id")
 
 write_rds(coefs, "output/all-models-coefs.rds")
 

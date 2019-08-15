@@ -4,6 +4,8 @@
 #
 #   14 August 2019
 #
+#   Run after 7-pull-coefs-all-models.R
+#
 
 library("dplyr")
 library("tidyr")

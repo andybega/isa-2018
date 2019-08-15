@@ -20,11 +20,22 @@ dv <- c(
 
 # Setup list of variables of interest
 voi <- c(
-  c("ccp_torture", "ccp_prerel", "ccp_habcorp", "ccp_dueproc", "ccp_speedtri"),
-  c("v2x_jucon", "v2xlg_legcon", "v2clacjust", "v2clsocgrp", "v2pepwrses", "v2pepwrsoc"),
-  c("epr_excluded_groups_count", "epr_excluded_group_pop",
-    "dd_democracy")
+  c("dd_democracy"),
+  sort(c("ccp_torture", 
+    "ccp_prerel", 
+    "ccp_habcorp", 
+    "ccp_dueproc", 
+    "ccp_speedtri")),
+  c("epr_excluded_groups_count" = "norm_sqrt_epr_excluded_group_pop", 
+    "epr_excluded_group_pop" = "norm_ln1p_epr_excluded_groups_count"),
+  sort(c("v2x_jucon", 
+    "v2xlg_legcon", 
+    "v2clacjust", 
+    "v2clsocgrp", 
+    "v2pepwrses", 
+    "v2pepwrsoc"))
 )
+names(voi)[names(voi)==""] <- voi[names(voi)==""]
 
 # Basic spec
 base_spec <- c(
@@ -71,13 +82,13 @@ econ_glob <- c(
 
 # For plotting, it helps to preserve the order of these things
 spec_element_factor_levels <- c(
-  voi, names(model_type), rev(names(base_spec)), names(press_free), names(pol_glob),
+  names(voi), names(model_type), rev(names(base_spec)), names(press_free), names(pol_glob),
   names(year_trend), names(hro), names(econ_glob))
 dput(spec_element_factor_levels, "output/spec_element_factor_levels.txt")
 
 # make sure to add these in the for loop below, too
 model_list <- crossing(
-  voi        = voi,
+  voi        = names(voi),
   base_spec  = names(base_spec),
   press_free = names(press_free),
   pol_glob   = names(pol_glob),
@@ -105,7 +116,7 @@ add_term <- function(spec, x) {
 for (i in 1:nrow(model_list)) {
   row_i <- model_list[i, ]
   pieces <- c(
-    row_i$voi, 
+    voi[row_i$voi], 
     base_spec[row_i$base_spec],
     press_free[row_i$press_free],
     pol_glob[row_i$pol_glob],
@@ -138,6 +149,15 @@ get_terms <- function(x) {
 }
 
 N_models <- nrow(model_list)
+
+# for the spec_X.rds names to show up in order, i want to pad the spec integer
+# with 0's. For that I need to know how many 0's to pad with. The names will 
+# then be like:
+# spec_0001.rds ... spec_1000.rds
+mag <- ceiling(log10(N_models))
+fmt_pattern <- paste0("output/models/spec_%0", mag, "d.rds")
+
+# Run all models
 for (i in 1:N_models) {
   flog.info("Specification %s of %s (%s%%)", i, N_models, round(i/N_models*100, 1))
   
@@ -146,10 +166,8 @@ for (i in 1:N_models) {
   # trim training data to reduce model size
   vars <- c(get_terms(spec_i), dv)
   cy_i <- cy[, vars]
-  # some of the robustness vars are missing cases, so subset as needed
-  #cy_i <- cy[complete.cases(cy), ]
   
-  fh  <- sprintf("output/models/spec_%s.rds", model_list$id[i])
+  fh  <- sprintf("output/models/spec_%04d.rds", model_list$id[i])
 
   mdl <- fit_model(spec_i, cy_i, model_list$model_func_name[i])
   write_rds(mdl, fh)

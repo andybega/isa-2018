@@ -19,10 +19,10 @@ CCP Torture,Marginalized,45,12,13,2
 "Democracy, 0/1",Marginalized,51,0,1,20
 EPR Excluded groups (% of total pop),Criminal,0,0,0,72
 EPR Excluded groups (% of total pop),Dissident,0,0,0,72
-EPR Excluded groups (% of total pop),Marginalized,0,17,19,36
-EPR Excluded groups (count),Criminal,0,7,9,56
+EPR Excluded groups (% of total pop),Marginalized,0,0,12,60
+EPR Excluded groups (count),Criminal,0,0,0,72
 EPR Excluded groups (count),Dissident,0,0,0,72
-EPR Excluded groups (count),Marginalized,0,0,0,72
+EPR Excluded groups (count),Marginalized,0,2,26,44
 VDem Civil liberty social class equality,Criminal,72,0,0,0
 VDem Civil liberty social class equality,Dissident,72,0,0,0
 VDem Civil liberty social class equality,Marginalized,72,0,0,0
