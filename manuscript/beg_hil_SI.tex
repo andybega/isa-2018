@@ -24,7 +24,7 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{hyperref}
 \hypersetup{unicode=true,
-            pdftitle={SI},
+            pdftitle={Supplemental Information for ``Examining Repressive and Oppressive State Violence using the Ill-Treatement and Torture Data''},
             pdfborder={0 0 0},
             breaklinks=true}
 \urlstyle{same}  % don't use monospace font for urls
@@ -73,14 +73,15 @@
 
 \setlength{\droptitle}{-2em}
 
-  \title{SI}
+  \title{Supplemental Information for ``Examining Repressive and Oppressive State
+Violence using the Ill-Treatement and Torture Data''}
     \pretitle{\vspace{\droptitle}\centering\huge}
   \posttitle{\par}
     \author{}
     \preauthor{}\postauthor{}
       \predate{\centering\large\emph}
   \postdate{\par}
-    \date{14 August 2019}
+    \date{15 August 2019}
 
 \usepackage{booktabs}
 \usepackage{longtable}
@@ -114,22 +115,21 @@ indicators:
 \begin{itemize}
 \tightlist
 \item
-  Media freedom, from Whitten-Woodring and Van Belle, 2015, ``The
-  Correlates of Media Freedom'', \emph{PSRM}, via
+  Media freedom, from Whitten-Woodring and Van Belle (2017), via
   \url{http://faculty.uml.edu/Jenifer_whittenwoodring/MediaFreedomData_000.aspx}.
   Per the authors recommendations we collapsed the 3-valued media
   freedom indicator into a binary ``functionally free'' and ``not free''
   version.
 \item
   IGO membership as an indicator of political globalization, from the
-  COW IGO state unit dataset.
+  COW IGO state unit dataset (Pevehouse, Nordstrom, and Warnke 2004).
 \item
   Linear and squared year trends
 \item
   Human rights organization membership (\texttt{hro\_n}) and secretariat
-  locations (\texttt{hro\_secloc}). From Murdie and Davis 2012 ``Shaming
-  and Blaming'', ISQ, \url{http://amandamurdie.org/research.html}, where
-  the original variable names are \texttt{hrfilled} and
+  locations (\texttt{hro\_secloc}). From Murdie and Davis (2012),
+  \url{http://amandamurdie.org/research.html}, where the original
+  variable names are \texttt{hrfilled} and
   \texttt{HRsecretariatlocation}.
 \item
   Trade as \% of GDP as an economic globalization indicator. From the
@@ -197,87 +197,126 @@ We included the following choices in our sensitivity analysis:
   Media freedom: 2 alternatives; no control or the global media freedom
   index
 \item
-  Political globalization: 3 alternatives; no control or a count of HRO
-  membership or a count of HRO secretariats located in a country
+  Political globalization: 3 alternatives; no control or a count of IGO
+  memberships or the proportion of IGOs in existence in a year that a
+  country is member of.
 \item
   Year trend: 3 alternatives; no trend, linear trend, or squared trend
 \end{itemize}
 
 Altogether this represents 72 possible specifications. The one we report
-in the paper is a Poisson model with random country intercepts, includes
-the base control set, but does not include any other control variables.
-We examined each of the 72 specifications for each of the 14 variables
-of interest using each of the 3 dependent variables.
+in the paper is a Poisson GLMER model with random country intercepts,
+includes the base control set, but does not include any other control
+variables. We examined each of the 72 specifications for each of the 14
+variables of interest using each of the 3 dependent variables.
 
 Altogether this comes out to 3,024 estimated models. Simonsohn et al use
 specification plots as the first step in interpreting the findings.
-Since we still have 42 specification plots overall, we skip this and
-first summarize even further by tallying, for each VOI, the number of
-coefficient estimates that are negative and stastistically significant
-(\(p < 0.05\)), negative but \(p > 0.05\), positive but \(p > 0.05\) and
-lastly positive and significant. This is shown below in Table
-\ref{tab:sens}, and next we will highlight findings regarding the main
-results we present in the paper. After that will be a section where we
-show what specification plots are, followed by a list of all 42.
+Since this still leaves us with 42 specification plots overall (14
+variables \(\times\) 3 DVs each), we skip this and first summarize even
+further by tallying, for each VOI, the number of coefficient estimates
+that are negative and stastistically significant (\(p < 0.05\)),
+negative but \(p > 0.05\), positive but \(p > 0.05\) and lastly positive
+and significant. This is shown below in Table \ref{tab:sens}, and next
+we will highlight findings regarding the main results we present in the
+paper. After that will be a section where we show what specification
+plots are, followed by a list of all 42.
 
 \begin{table}[t]
 
 \caption{\label{tab:sens}Summary of sensitivity analysis estimates}
 \centering
-\begin{tabular}{llrrrr}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3in}lrrrr}
 \toprule
-Variable & Outcome & neg & leanneg & leanpos & pos\\
+\multicolumn{2}{c}{ } & \multicolumn{4}{c}{$\beta$} \\
+\cmidrule(l{3pt}r{3pt}){3-6}
+\multicolumn{3}{c}{ } & \multicolumn{2}{c}{$p > 0.05$} & \multicolumn{1}{c}{ } \\
+\cmidrule(l{3pt}r{3pt}){4-5}
+Variable & Outcome & - & - & + & +\\
 \midrule
-Democracy, 0/1 & Criminal & 66 & 0 & 3 & 3\\
-Democracy, 0/1 & Dissident & 72 & 0 & 0 & 0\\
-Democracy, 0/1 & Marginalized & 51 & 0 & 1 & 20\\
-CCP Due process & Criminal & 6 & 18 & 12 & 36\\
-CCP Due process & Dissident & 39 & 15 & 0 & 18\\
-\addlinespace
-CCP Due process & Marginalized & 45 & 5 & 4 & 18\\
-CCP Habeas corpus & Criminal & 0 & 7 & 18 & 47\\
-CCP Habeas corpus & Dissident & 72 & 0 & 0 & 0\\
-CCP Habeas corpus & Marginalized & 36 & 5 & 26 & 5\\
-CCP Pretrial release & Criminal & 36 & 0 & 0 & 36\\
-\addlinespace
-CCP Pretrial release & Dissident & 63 & 0 & 0 & 9\\
-CCP Pretrial release & Marginalized & 36 & 9 & 3 & 24\\
-CCP Speedy trial & Criminal & 36 & 0 & 0 & 36\\
-CCP Speedy trial & Dissident & 64 & 6 & 2 & 0\\
-CCP Speedy trial & Marginalized & 29 & 25 & 0 & 18\\
-\addlinespace
-CCP Torture & Criminal & 30 & 13 & 14 & 15\\
-CCP Torture & Dissident & 66 & 6 & 0 & 0\\
-CCP Torture & Marginalized & 45 & 12 & 13 & 2\\
-EPR Excluded groups (\% of total pop) & Criminal & 0 & 0 & 0 & 72\\
-EPR Excluded groups (\% of total pop) & Dissident & 0 & 0 & 0 & 72\\
-\addlinespace
-EPR Excluded groups (\% of total pop) & Marginalized & 0 & 17 & 19 & 36\\
-EPR Excluded groups (count) & Criminal & 0 & 7 & 9 & 56\\
-EPR Excluded groups (count) & Dissident & 0 & 0 & 0 & 72\\
-EPR Excluded groups (count) & Marginalized & 0 & 0 & 0 & 72\\
-VDem Civil liberty social class equality & Criminal & 72 & 0 & 0 & 0\\
-\addlinespace
-VDem Civil liberty social class equality & Dissident & 72 & 0 & 0 & 0\\
-VDem Civil liberty social class equality & Marginalized & 72 & 0 & 0 & 0\\
-VDem Civil liberty social group equality & Criminal & 60 & 12 & 0 & 0\\
-VDem Civil liberty social group equality & Dissident & 72 & 0 & 0 & 0\\
-VDem Civil liberty social group equality & Marginalized & 72 & 0 & 0 & 0\\
-\addlinespace
-VDem Judicial constraints on executive & Criminal & 51 & 21 & 0 & 0\\
-VDem Judicial constraints on executive & Dissident & 72 & 0 & 0 & 0\\
-VDem Judicial constraints on executive & Marginalized & 69 & 0 & 0 & 3\\
-VDem Legislative constraints on executive & Criminal & 30 & 4 & 32 & 6\\
-VDem Legislative constraints on executive & Dissident & 72 & 0 & 0 & 0\\
-\addlinespace
-VDem Legislative constraints on executive & Marginalized & 36 & 22 & 11 & 3\\
-VDem Power by social group & Criminal & 41 & 30 & 1 & 0\\
-VDem Power by social group & Dissident & 72 & 0 & 0 & 0\\
-VDem Power by social group & Marginalized & 69 & 0 & 0 & 3\\
-VDem Power by socioeconomic position & Criminal & 61 & 11 & 0 & 0\\
-\addlinespace
-VDem Power by socioeconomic position & Dissident & 72 & 0 & 0 & 0\\
-VDem Power by socioeconomic position & Marginalized & 70 & 2 & 0 & 0\\
+ & Criminal & 66 & 0 & 3 & 3\\
+
+ & Dissident & 72 & 0 & 0 & 0\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash Democracy, 0/1} & Marginalized & 51 & 0 & 1 & 20\\
+\cmidrule{1-6}
+ & Criminal & 6 & 18 & 12 & 36\\
+
+ & Dissident & 39 & 15 & 0 & 18\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash CCP Due process} & Marginalized & 45 & 5 & 4 & 18\\
+\cmidrule{1-6}
+ & Criminal & 0 & 7 & 18 & 47\\
+
+ & Dissident & 72 & 0 & 0 & 0\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash CCP Habeas corpus} & Marginalized & 36 & 5 & 26 & 5\\
+\cmidrule{1-6}
+ & Criminal & 36 & 0 & 0 & 36\\
+
+ & Dissident & 63 & 0 & 0 & 9\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash CCP Pretrial release} & Marginalized & 36 & 9 & 3 & 24\\
+\cmidrule{1-6}
+ & Criminal & 36 & 0 & 0 & 36\\
+
+ & Dissident & 64 & 6 & 2 & 0\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash CCP Speedy trial} & Marginalized & 29 & 25 & 0 & 18\\
+\cmidrule{1-6}
+ & Criminal & 30 & 13 & 14 & 15\\
+
+ & Dissident & 66 & 6 & 0 & 0\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash CCP Torture} & Marginalized & 45 & 12 & 13 & 2\\
+\cmidrule{1-6}
+ & Criminal & 0 & 0 & 0 & 72\\
+
+ & Dissident & 0 & 0 & 0 & 72\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash EPR Excluded groups (\% of total pop)} & Marginalized & 0 & 0 & 12 & 60\\
+\cmidrule{1-6}
+ & Criminal & 0 & 0 & 0 & 72\\
+
+ & Dissident & 0 & 0 & 0 & 72\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash EPR Excluded groups (count)} & Marginalized & 0 & 2 & 26 & 44\\
+\cmidrule{1-6}
+ & Criminal & 72 & 0 & 0 & 0\\
+
+ & Dissident & 72 & 0 & 0 & 0\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash VDem Civil liberty social class equality} & Marginalized & 72 & 0 & 0 & 0\\
+\cmidrule{1-6}
+ & Criminal & 60 & 12 & 0 & 0\\
+
+ & Dissident & 72 & 0 & 0 & 0\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash VDem Civil liberty social group equality} & Marginalized & 72 & 0 & 0 & 0\\
+\cmidrule{1-6}
+ & Criminal & 51 & 21 & 0 & 0\\
+
+ & Dissident & 72 & 0 & 0 & 0\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash VDem Judicial constraints on executive} & Marginalized & 69 & 0 & 0 & 3\\
+\cmidrule{1-6}
+ & Criminal & 30 & 4 & 32 & 6\\
+
+ & Dissident & 72 & 0 & 0 & 0\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash VDem Legislative constraints on executive} & Marginalized & 36 & 22 & 11 & 3\\
+\cmidrule{1-6}
+ & Criminal & 41 & 30 & 1 & 0\\
+
+ & Dissident & 72 & 0 & 0 & 0\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash VDem Power by social group} & Marginalized & 69 & 0 & 0 & 3\\
+\cmidrule{1-6}
+ & Criminal & 61 & 11 & 0 & 0\\
+
+ & Dissident & 72 & 0 & 0 & 0\\
+
+\multirow[t]{-3}{3in}{\raggedright\arraybackslash VDem Power by socioeconomic position} & Marginalized & 70 & 2 & 0 & 0\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -285,17 +324,106 @@ VDem Power by socioeconomic position & Marginalized & 70 & 2 & 0 & 0\\
 \hypertarget{summary-of-findings}{%
 \subsection{Summary of findings}\label{summary-of-findings}}
 
+The sensitivity results overall are consistent with the results of the
+core specifications reported in the paper. There are some instances
+where the sensitivity results are stronger than those reported in the
+paper, e.g.~in the same direction but with a larger proportion of
+statistically significant estimates (both of the EPR power variables).
+And there are some instances where the results tend towards but are not
+clearly in the other direction, e.g.~for CCP Habeas Corpus we noted a
+negative but insignificant estimate while includes more positive
+estimates, although still many insignificant. We note either kind of
+divergence below.
+
+\hypertarget{negative-relationship-for-democracy-01}{%
+\subsubsection{Negative relationship for ``Democracy
+0/1''}\label{negative-relationship-for-democracy-01}}
+
+We report a negative relationship between this and all three outcomes.
+This largely holds up, with significant negative estimates in all 72
+specs for ``dissidents'', 66 for ``criminal'', and 51 for
+``marginalized''
+
+\hypertarget{negative-relationship-for-constitutional-provisions}{%
+\subsubsection{Negative relationship for constitutional
+provisions}\label{negative-relationship-for-constitutional-provisions}}
+
+Negative relationships for the binary constitutional provision
+indicators, except one negative but insignificant estimate for ``CCP
+Habeas Corpus'' on ``Criminal'' in the main paper.
+
+In the sensitivity analysis:
+
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Negative relationship for ``Democracy 0/1''}. We report a
-  negative relationship between this and all three outcomes. This
-  largely holds up, with significant negative estimates in all 72 specs
-  for ``dissidents'', 66 for ``criminal'', and 51 for ``marginalized''
+  the finding for ``CCP Habeas Corpus'' on ``Criminal'' actually leans
+  towards positive or inconsistent (insignificant).
 \item
-  \textbf{Negative relationship for constitutional provisions}, with
-  only one negative but insignificant estimate for ``CCP Habeas Corpus''
-  on ``Criminal''.
+  for the remaining indicators and outcomes, they either tend to be
+  consistent with the main paper results, or, when there are deviations,
+  they appear to mostly be due to the model and intercept choice.
+  Particularly, when using a regular Poisson count model without country
+  random effects there are several sign reversals.
+\end{itemize}
+
+\hypertarget{positive-relationships-for-epr-excluded-groups}{%
+\subsubsection{Positive relationships for EPR excluded
+groups}\label{positive-relationships-for-epr-excluded-groups}}
+
+In the paper we note positive effects and that the effect, surprisingly,
+appears to be the largest for criminal victims.
+
+These findings hold up well in the sensitivity analysis.
+
+\begin{itemize}
+\tightlist
+\item
+  for ``Marignalized'' victims, there are some insignificant estimates,
+  although mostly still with positive point estimates.
+\item
+  the estimate size is still overall quite large for ``Criminal''
+  victims, however, the estimate size for ``Dissident'' victims in the
+  sensitivity analyises is generally larger than those in the paper, and
+  approaching rough equality with the overall average ``Criminal''
+  victims effect sizes.
+\end{itemize}
+
+\hypertarget{negative-but-sometimes-insignificant-associations-for-v-dem-indicators}{%
+\subsubsection{Negative but sometimes insignificant associations for
+V-Dem
+indicators}\label{negative-but-sometimes-insignificant-associations-for-v-dem-indicators}}
+
+In the paper, the estimates for the V-Dem variables have negative signs,
+except one positive but insignificant estimate (for Legislative
+Constraints - Criminal victim type). Four of the negative sign
+coefficients do not have statistical significance, the remaining do. The
+sensitivity analysis is again largely consistent with these results.
+
+Notable divergences are:
+
+\begin{itemize}
+\tightlist
+\item
+  The negative but insignificant effects for Power by socioeconomic
+  position and social group on Criminal victim type are actually more
+  strongly negative and significant in the sensitivity analysis.
+\item
+  For judicial constraints and criminal victim types, the paper
+  esetimates are negative but insignificant, whereas in the sensitivity
+  analysis the estimates more strongly lean towards clearly negative,
+  especially in the global intercept only regular Poisson count models.
+\item
+  For legislative constraints the paper results are slightly positive
+  but insignificant; the sensitivity results are quite divergent. The
+  country random intercept Poisson GLMER model produces mostly positive
+  but insignificant estimates, while out of the global intercept only
+  Poisson GLM's 36 estimates all were significant but 6 with positive
+  signs and 30 with negative signs. The 6 Poisson GLM estimates with
+  positive signs all exclude the basic controls, i.e. ``Intercept(s)
+  only'' and exclude either of the political globalization indictors,
+  i.e.~have ``None''. Changing either of those two choices flips the
+  sign to negative.
 \end{itemize}
 
 \clearpage
@@ -371,6 +499,118 @@ VOI}\label{list-of-all-specification-plots-by-voi}}
 
 \includegraphics[height=4in]{../output/figures-robustness/specplot-ccp_habcorp-itt_alleg_vtdissident.png}
 
+\includegraphics[height=4in]{../output/figures-robustness/specplot-ccp_habcorp-itt_alleg_vtmarginalized.png}
+
+\hypertarget{voi-ccp_prerel}{%
+\subsection{VOI: ccp\_prerel}\label{voi-ccp_prerel}}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-ccp_prerel-itt_alleg_vtcriminal.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-ccp_prerel-itt_alleg_vtdissident.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-ccp_prerel-itt_alleg_vtmarginalized.png}
+
+\hypertarget{voi-ccp_speedtri}{%
+\subsection{VOI: ccp\_speedtri}\label{voi-ccp_speedtri}}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-ccp_speedtri-itt_alleg_vtcriminal.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-ccp_speedtri-itt_alleg_vtdissident.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-ccp_speedtri-itt_alleg_vtmarginalized.png}
+
+\hypertarget{voi-ccp_torture}{%
+\subsection{VOI: ccp\_torture}\label{voi-ccp_torture}}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-ccp_torture-itt_alleg_vtcriminal.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-ccp_torture-itt_alleg_vtdissident.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-ccp_torture-itt_alleg_vtmarginalized.png}
+
+\hypertarget{voi-dd_democracy}{%
+\subsection{VOI: dd\_democracy}\label{voi-dd_democracy}}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-dd_democracy-itt_alleg_vtcriminal.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-dd_democracy-itt_alleg_vtdissident.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-dd_democracy-itt_alleg_vtmarginalized.png}
+
+\hypertarget{voi-epr_excluded_group_pop}{%
+\subsection{VOI:
+epr\_excluded\_group\_pop}\label{voi-epr_excluded_group_pop}}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-epr_excluded_group_pop-itt_alleg_vtcriminal.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-epr_excluded_group_pop-itt_alleg_vtdissident.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-epr_excluded_group_pop-itt_alleg_vtmarginalized.png}
+
+\hypertarget{voi-epr_excluded_groups_count}{%
+\subsection{VOI:
+epr\_excluded\_groups\_count}\label{voi-epr_excluded_groups_count}}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-epr_excluded_groups_count-itt_alleg_vtcriminal.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-epr_excluded_groups_count-itt_alleg_vtdissident.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-epr_excluded_groups_count-itt_alleg_vtmarginalized.png}
+
+\hypertarget{voi-v2clacjust}{%
+\subsection{VOI: v2clacjust}\label{voi-v2clacjust}}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2clacjust-itt_alleg_vtcriminal.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2clacjust-itt_alleg_vtdissident.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2clacjust-itt_alleg_vtmarginalized.png}
+
+\hypertarget{voi-v2clsocgrp}{%
+\subsection{VOI: v2clsocgrp}\label{voi-v2clsocgrp}}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2clsocgrp-itt_alleg_vtcriminal.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2clsocgrp-itt_alleg_vtdissident.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2clsocgrp-itt_alleg_vtmarginalized.png}
+
+\hypertarget{voi-v2pepwrses}{%
+\subsection{VOI: v2pepwrses}\label{voi-v2pepwrses}}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2pepwrses-itt_alleg_vtcriminal.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2pepwrses-itt_alleg_vtdissident.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2pepwrses-itt_alleg_vtmarginalized.png}
+
+\hypertarget{voi-v2pepwrsoc}{%
+\subsection{VOI: v2pepwrsoc}\label{voi-v2pepwrsoc}}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2pepwrsoc-itt_alleg_vtcriminal.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2pepwrsoc-itt_alleg_vtdissident.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2pepwrsoc-itt_alleg_vtmarginalized.png}
+
+\hypertarget{voi-v2x_jucon}{%
+\subsection{VOI: v2x\_jucon}\label{voi-v2x_jucon}}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2x_jucon-itt_alleg_vtcriminal.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2x_jucon-itt_alleg_vtdissident.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2x_jucon-itt_alleg_vtmarginalized.png}
+
+\hypertarget{voi-v2xlg_legcon}{%
+\subsection{VOI: v2xlg\_legcon}\label{voi-v2xlg_legcon}}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2xlg_legcon-itt_alleg_vtcriminal.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2xlg_legcon-itt_alleg_vtdissident.png}
+
+\includegraphics[height=4in]{../output/figures-robustness/specplot-v2xlg_legcon-itt_alleg_vtmarginalized.png}
+
 \hypertarget{references}{%
 \section*{References}\label{references}}
 \addcontentsline{toc}{section}{References}
@@ -378,13 +618,31 @@ VOI}\label{list-of-all-specification-plots-by-voi}}
 \hypertarget{refs}{}
 \leavevmode\hypertarget{ref-gelman2013garden}{}%
 Gelman, Andrew, and Eric Loken. 2013. ``The garden of forking paths.''
-\url{http://www.stat.columbia.edu//textbackslashtextasciitildegelman/research/unpublished/p/_hacking.pdf}.
+\url{http://www.stat.columbia.edu/~gelman/research/unpublished/p_hacking.pdf}.
+
+\leavevmode\hypertarget{ref-murdie2012shaming}{}%
+Murdie, Amanda M, and David R Davis. 2012. ``Shaming and Blaming: Using
+Events Data to Assess the Impact of Human Rights Ingos.''
+\emph{International Studies Quarterly} 56 (1). Blackwell Publishing Ltd
+Oxford, UK: 1--16.
+
+\leavevmode\hypertarget{ref-pevehouse2004correlates}{}%
+Pevehouse, Jon, Timothy Nordstrom, and Kevin Warnke. 2004. ``The
+Correlates of War 2 International Governmental Organizations Data
+Version 2.0.'' \emph{Conflict Management and Peace Science} 21 (2). SAGE
+Publications Sage UK: London, England: 101--19.
 
 \leavevmode\hypertarget{ref-simonsohn2015specification}{}%
 Simonsohn, Uri, Joseph P Simmons, and Leif D Nelson. 2015.
 ``Specification Curve: Descriptive and Inferential Statistics on All
 Reasonable Specifications.'' \emph{SSRN Electronic Journal}.
 \url{https://doi.org/10.2139/ssrn.2694998}.
+
+\leavevmode\hypertarget{ref-whitten2017correlates}{}%
+Whitten-Woodring, Jenifer, and Douglas A Van Belle. 2017. ``The
+Correlates of Media Freedom: An Introduction of the Global Media Freedom
+Dataset.'' \emph{Political Science Research and Methods} 5 (1).
+Cambridge University Press: 179--88.
 
 
 \end{document}

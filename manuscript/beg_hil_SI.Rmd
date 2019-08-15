@@ -1,5 +1,5 @@
 ---
-title: "SI"
+title: "Supplemental Information for ``Examining Repressive and Oppressive State Violence using the Ill-Treatement and Torture Data''"
 author: ""
 date: "`r format(Sys.Date(), '%d %B %Y')`"
 output: 
@@ -34,10 +34,10 @@ cy <- read_rds("../output/cy.rds")
 
 For additional robustness checks, we considered the following indicators:
 
-- Media freedom, from Whitten-Woodring and Van Belle, 2015, "The Correlates of Media Freedom", *PSRM*, via http://faculty.uml.edu/Jenifer_whittenwoodring/MediaFreedomData_000.aspx. Per the authors recommendations we collapsed the 3-valued media freedom indicator into a binary "functionally free" and "not free" version. 
-- IGO membership as an indicator of political globalization, from the COW IGO state unit dataset. 
+- Media freedom, from @whitten2017correlates, via http://faculty.uml.edu/Jenifer_whittenwoodring/MediaFreedomData_000.aspx. Per the authors recommendations we collapsed the 3-valued media freedom indicator into a binary "functionally free" and "not free" version. 
+- IGO membership as an indicator of political globalization, from the COW IGO state unit dataset [@pevehouse2004correlates]. 
 - Linear and squared year trends
-- Human rights organization membership (`hro_n`) and secretariat locations (`hro_secloc`). From Murdie and Davis 2012 "Shaming and Blaming", ISQ, http://amandamurdie.org/research.html, where the original variable names are `hrfilled` and `HRsecretariatlocation`.
+- Human rights organization membership (`hro_n`) and secretariat locations (`hro_secloc`). From @murdie2012shaming, http://amandamurdie.org/research.html, where the original variable names are `hrfilled` and `HRsecretariatlocation`.
 - Trade as % of GDP as an economic globalization indicator. From the World Bank WDI. 
 
 The trade and HRO data contain missing values. The number of observations in a model depend on the particular combination of the 3 indicators impacted in a given specification, such that:
@@ -73,28 +73,68 @@ We included the following choices in our sensitivity analysis:
 - Model type: 2 alternatives; either a regular Poisson count model (GLM) or a Poisson count model with random country intercepts (GLMER).
 - Base terms: 2 alternatives; intercept(s) only or the basic controls, as discussed in the main paper. 
 - Media freedom: 2 alternatives; no control or the global media freedom index
-- Political globalization: 3 alternatives; no control or a count of HRO membership or a count of HRO secretariats located in a country
+- Political globalization: 3 alternatives; no control or a count of IGO memberships or the proportion of IGOs in existence in a year that a country is member of.
 - Year trend: 3 alternatives; no trend, linear trend, or squared trend
 
-Altogether this represents 72 possible specifications. The one we report in the paper is a Poisson model with random country intercepts, includes the base control set, but does not include any other control variables. We examined each of the 72 specifications for each of the 14 variables of interest using each of the 3 dependent variables. 
+Altogether this represents 72 possible specifications. The one we report in the paper is a Poisson GLMER model with random country intercepts, includes the base control set, but does not include any other control variables. We examined each of the 72 specifications for each of the 14 variables of interest using each of the 3 dependent variables. 
 
-Altogether this comes out to 3,024 estimated models. Simonsohn et al use specification plots as the first step in interpreting the findings. Since we still have 42 specification plots overall, we skip this and first summarize even further by tallying, for each VOI, the number of coefficient estimates that are negative and stastistically significant ($p < 0.05$), negative but $p > 0.05$, positive but $p > 0.05$ and lastly positive and significant. This is shown below in Table \ref{tab:sens}, and next we will highlight findings regarding the main results we present in the paper. After that will be a section where we show what specification plots are, followed by a list of all 42. 
+Altogether this comes out to 3,024 estimated models. Simonsohn et al use specification plots as the first step in interpreting the findings. Since this still leaves us with 42 specification plots overall (14 variables $\times$ 3 DVs each), we skip this and first summarize even further by tallying, for each VOI, the number of coefficient estimates that are negative and stastistically significant ($p < 0.05$), negative but $p > 0.05$, positive but $p > 0.05$ and lastly positive and significant. This is shown below in Table \ref{tab:sens}, and next we will highlight findings regarding the main results we present in the paper. After that will be a section where we show what specification plots are, followed by a list of all 42. 
 
 ```{r}
 tbl <- read_csv("../output/all-models-direction-table.csv")
-tbl %>%
+tbl <- tbl %>%
   mutate(Variable = order_terms(Variable)) %>%
-  arrange(desc(Variable), Outcome) %>%
-  knitr::kable(caption = "Summary of sensitivity analysis estimates", 
+  arrange(desc(Variable), Outcome)
+
+tbl %>%
+  knitr::kable(format = "latex",
+               caption = "Summary of sensitivity analysis estimates", 
                label = "sens",
+               col.names = c("Variable", "Outcome", "-", "-", "+", "+"),
                booktabs = TRUE) %>%
-  kable_styling()
+  kable_styling() %>%
+  column_spec(1, width = "3in") %>%
+  collapse_rows(columns = 1, valign = "top", latex_hline = "major") %>%
+  add_header_above(c(" " = 3, "$p > 0.05$" = 2, " " = 1), escape = FALSE) %>%
+  add_header_above(c(" " = 2, "$\\\\beta$" = 4), escape = FALSE)
+  
 ```
 
 ## Summary of findings
 
-- **Negative relationship for "Democracy 0/1"**. We report a negative relationship between this and all three outcomes. This largely holds up, with significant negative estimates in all 72 specs for "dissidents", 66 for "criminal", and 51 for "marginalized"
-- **Negative relationship for constitutional provisions**, with only one negative but insignificant estimate for "CCP Habeas Corpus" on "Criminal". 
+The sensitivity results overall are consistent with the results of the core specifications reported in the paper. There are some instances where the sensitivity results are stronger than those reported in the paper, e.g. in the same direction but with a larger proportion of statistically significant estimates (both of the EPR power variables). And there are some instances where the results tend towards but are not clearly in the other direction, e.g. for CCP Habeas Corpus we noted a negative but insignificant estimate while includes more positive estimates, although still many insignificant. We note either kind of divergence below. 
+
+### Negative relationship for ``Democracy 0/1''
+
+We report a negative relationship between this and all three outcomes. This largely holds up, with significant negative estimates in all 72 specs for "dissidents", 66 for "criminal", and 51 for "marginalized"
+
+### Negative relationship for constitutional provisions
+
+Negative relationships for the binary constitutional provision indicators, except one negative but insignificant estimate for "CCP Habeas Corpus" on "Criminal" in the main paper. 
+
+In the sensitivity analysis: 
+
+- the finding for "CCP Habeas Corpus" on "Criminal" actually leans towards positive or inconsistent (insignificant). 
+- for the remaining indicators and outcomes, they either tend to be consistent with the main paper results, or, when there are deviations, they appear to mostly be due to the model and intercept choice. Particularly, when using a regular Poisson count model without country random effects there are several sign reversals. 
+
+### Positive relationships for EPR excluded groups 
+
+In the paper we note positive effects and that the effect, surprisingly, appears to be the largest for criminal victims. 
+
+These findings hold up well in the sensitivity analysis. 
+
+- for "Marignalized" victims, there are some insignificant estimates, although mostly still with positive point estimates. 
+- the estimate size is still overall quite large for "Criminal" victims, however, the estimate size for "Dissident" victims in the sensitivity analyises is generally larger than those in the paper, and approaching rough equality with the overall average "Criminal" victims effect sizes. 
+
+### Negative but sometimes insignificant associations for V-Dem indicators
+
+In the paper, the estimates for the V-Dem variables have negative signs, except one positive but insignificant estimate (for Legislative Constraints - Criminal victim type). Four of the negative sign coefficients do not have statistical significance, the remaining do. The sensitivity analysis is again largely consistent with these results. 
+
+Notable divergences are:
+
+- The negative but insignificant effects for Power by socioeconomic position and social group on Criminal victim type are actually more strongly negative and significant in the sensitivity analysis. 
+- For judicial constraints and criminal victim types, the paper esetimates are negative but insignificant, whereas in the sensitivity analysis the estimates more strongly lean towards clearly negative, especially in the global intercept only regular Poisson count models. 
+- For legislative constraints the paper results are slightly positive but insignificant; the sensitivity results are quite divergent. The country random intercept Poisson GLMER model produces mostly positive but insignificant estimates, while out of the global intercept only Poisson GLM's 36 estimates all were significant but 6 with positive signs and 30 with negative signs. The 6 Poisson GLM estimates with positive signs all exclude the basic controls, i.e. "Intercept(s) only" and exclude either of the political globalization indictors, i.e. have "None". Changing either of those two choices flips the sign to negative. 
 
 
 <!-- want the table to pop up before this -->
@@ -124,7 +164,7 @@ In terms of interpretation, we can firstly see that a large but not overwhelming
 plots <- list.files("../output/figures-robustness", full.names = TRUE)
 
 this_voi <- ""
-for (fh in plots[1:5]) {
+for (fh in plots) {
   meta <- str_split(basename(fh), "-")[[1]]
   if (this_voi != meta[2]) {
     this_voi <- meta[2]
