@@ -3,6 +3,8 @@
 #
 #   14 August 2019
 #
+#   Depends on s1-estimate-all-models.R
+#
 
 library("nlme")
 library("lme4")

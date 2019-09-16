@@ -4,7 +4,7 @@
 #
 #   14 August 2019
 #
-#   Run after 7-pull-coefs-all-models.R
+#   Run after s3-pull-coefs-all-models.R
 #
 
 library("dplyr")

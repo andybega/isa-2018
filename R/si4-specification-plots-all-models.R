@@ -3,7 +3,7 @@
 #
 #   15 August 2019
 #
-#   depends on 6-estimate-all-models.R output
+#   depends on s1-estimate-all-models.R output
 #
 
 library("nlme")
