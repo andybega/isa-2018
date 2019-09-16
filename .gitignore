@@ -13,3 +13,21 @@ output/models-old
 
 # CMPS reviews
 nogit/
+
+# Cleaned up replication materials
+cmps-itt/
+
+# latex artfifacts
+manuscript/*.out
+manuscript/*.aux
+manuscript/*.bbl
+manuscript/*.blg
+manuscript/*.fdb_latexmk
+manuscript/*.fls
+manuscript/*.log
+manuscript/*.synctex.gz
+
+# These will be in the replication folder, so don't copy again because they 
+# are big and close to the 100MB limit
+output/models/old/mdl_xgboost.rds
+output/models/old/mdl_xgboost_extvars.rds
