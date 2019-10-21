@@ -10,3 +10,4 @@ The literature on government violence focuses primarily on the repression of dis
 
 Presented at ISA 2018, April 4-7, San Francisco ([this commit](https://github.com/andybega/isa-2018/tree/5769c2ed830c4d58b9a7a51da9877fefe65da667))
 
+Replication materials are in a public repo at https://github.com/andybega/cmps-itt
